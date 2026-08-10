@@ -27,6 +27,8 @@ jobs:
         run: lake env lean lean/DerivativeScratch.lean
       - name: Test integrality scratch
         run: lake env lean lean/IntegralScratch.lean
+      - name: Test finite-field irreducibility scratch
+        run: lake env lean lean/IrreducibleScratch.lean
       - name: Apply derivative proof patch
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
