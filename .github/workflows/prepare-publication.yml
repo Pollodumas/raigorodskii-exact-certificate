@@ -1,0 +1,137 @@
+name: Prepare publication package
+
+on:
+  push:
+    branches: [publication-v1]
+    paths:
+      - "paper/**"
+      - "docs/**"
+      - "verification/**"
+      - "lean/**"
+      - "README.md"
+      - "CITATION.cff"
+      - "PUBLISHING.md"
+      - "RELEASE_NOTES_v0.8.md"
+      - "lakefile.toml"
+      - "lean-toolchain"
+      - "publication-assets/**"
+      - ".github/workflows/prepare-publication.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-extra texlive-fonts-recommended lmodern poppler-utils zip
+
+      - name: Install exact-verification dependency
+        run: python -m pip install -r verification/requirements_raigorodskii_v0_8.txt
+
+      - name: Run exact verifiers
+        run: |
+          python verification/verify_raigorodskii_certificate_v0_8.py
+          python verification/verify_raigorodskii_certificate_stdlib_v0_8.py
+
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Build placeholder-free Lean core
+        run: |
+          lake update
+          lake exe cache get
+          if grep -RInE '^[[:space:]]*(sorry|by[[:space:]]+sorry)\b' lean; then
+            exit 1
+          fi
+          lake build
+
+      - name: Compile and inspect manuscript
+        working-directory: paper
+        run: |
+          latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_8.tex
+          test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_8.pdf | awk '/^Pages:/ {print $2}')" = "7"
+          if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_8.log; then
+            exit 1
+          fi
+          pdffonts Raigorodskii_Exact_Certificate_Draft_v0_8.pdf
+          latexmk -c Raigorodskii_Exact_Certificate_Draft_v0_8.tex
+
+      - name: Remove temporary transfer chunks
+        run: rm -rf publication-assets
+
+      - name: Generate source checksums
+        run: |
+          sha256sum \
+            README.md \
+            CITATION.cff \
+            PUBLISHING.md \
+            RELEASE_NOTES_v0.8.md \
+            paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf \
+            paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex \
+            paper/CHANGELOG_v0_8.md \
+            docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md \
+            docs/FORMALIZATION_STATUS.md \
+            lean/RaigorodskiiCertificate.lean \
+            lean-toolchain \
+            lakefile.toml \
+            lake-manifest.json \
+            verification/requirements_raigorodskii_v0_8.txt \
+            verification/verify_raigorodskii_certificate_v0_8.py \
+            verification/verify_raigorodskii_certificate_stdlib_v0_8.py \
+            > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: Build reproducibility archive
+        run: |
+          rm -rf dist
+          mkdir -p dist/Raigorodskii_Exact_Certificate_v0_8/{paper,docs,verification,lean}
+          cp README.md CITATION.cff PUBLISHING.md RELEASE_NOTES_v0.8.md SHA256SUMS \
+            lean-toolchain lakefile.toml lake-manifest.json \
+            dist/Raigorodskii_Exact_Certificate_v0_8/
+          cp paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf \
+            paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex \
+            paper/CHANGELOG_v0_8.md \
+            dist/Raigorodskii_Exact_Certificate_v0_8/paper/
+          cp docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md \
+            docs/FORMALIZATION_STATUS.md \
+            dist/Raigorodskii_Exact_Certificate_v0_8/docs/
+          cp verification/requirements_raigorodskii_v0_8.txt \
+            verification/verify_raigorodskii_certificate_v0_8.py \
+            verification/verify_raigorodskii_certificate_stdlib_v0_8.py \
+            dist/Raigorodskii_Exact_Certificate_v0_8/verification/
+          cp lean/RaigorodskiiCertificate.lean \
+            dist/Raigorodskii_Exact_Certificate_v0_8/lean/
+          cd dist
+          zip -r -9 Raigorodskii_Exact_Certificate_v0_8.zip Raigorodskii_Exact_Certificate_v0_8
+          rm -rf Raigorodskii_Exact_Certificate_v0_8
+          sha256sum Raigorodskii_Exact_Certificate_v0_8.zip > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/prepare-publication.yml
+
+      - name: Commit generated publication artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No publication changes to commit."
+          else
+            git commit -m "Prepare reproducible publication package v0.8"
+            git push origin HEAD:publication-v1
+          fi
