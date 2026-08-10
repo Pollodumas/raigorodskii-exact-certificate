@@ -18,11 +18,9 @@ def qPoly : Polynomial ℝ :=
 
 lemma P_eq_eval (s : ℝ) : P s = pPoly.eval s := by
   simp [P, pPoly]
-  ring
 
 lemma Q_eq_eval (x : ℝ) : Q x = qPoly.eval x := by
   simp [Q, qPoly]
-  ring
 """
 
 old_p = """lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
@@ -37,6 +35,7 @@ new_p = """lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [pPoly, Pder]
+  ring
 """
 
 old_q = """lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
@@ -51,6 +50,7 @@ new_q = """lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [qPoly, Qder]
+  ring
 """
 
 for old, new, label in [
