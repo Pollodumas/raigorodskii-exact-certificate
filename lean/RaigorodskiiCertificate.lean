@@ -19,10 +19,6 @@ STATUS
 * The Galois-group and "not expressible by radicals" claims are not stated:
   current Mathlib has splitting-field/Galois infrastructure, but no convenient
   end-to-end theorem implementing the paper's Dedekind-cycle argument.
-
-The file was produced in an environment without a Lean executable, so it has
-not been typechecked here. Minor API/syntax adjustments may therefore be needed
-against the exact Mathlib revision used by the reader.
 -/
 
 set_option autoImplicit false
@@ -34,16 +30,9 @@ open Polynomial
 
 noncomputable section
 
-/-! ## The rational function and its critical polynomial -/
-
-def N (s : ℝ) : ℝ :=
-  1 + s + s ^ 3
-
-def D (s : ℝ) : ℝ :=
-  1 + s ^ 2 + s ^ 4
-
-def F (s : ℝ) : ℝ :=
-  N s / D s
+def N (s : ℝ) : ℝ := 1 + s + s ^ 3
+def D (s : ℝ) : ℝ := 1 + s ^ 2 + s ^ 4
+def F (s : ℝ) : ℝ := N s / D s
 
 def P (s : ℝ) : ℝ :=
   1 - 2 * s + 2 * s ^ 2 - 4 * s ^ 3 - 2 * s ^ 4 - s ^ 6
@@ -63,11 +52,11 @@ lemma D_pos (s : ℝ) : 0 < D s := by
   unfold D
   nlinarith [sq_nonneg s, sq_nonneg (s ^ 2)]
 
-lemma D_ne_zero (s : ℝ) : D s ≠ 0 :=
-  ne_of_gt (D_pos s)
+lemma D_ne_zero (s : ℝ) : D s ≠ 0 := ne_of_gt (D_pos s)
 
 lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
-  simp [P, Pder]
+  unfold P Pder
+  simp
   ring
 
 lemma Pder_neg {s : ℝ} (hs : 0 < s) : Pder s < 0 := by
@@ -86,31 +75,22 @@ lemma P_strictAntiOn_pos : StrictAntiOn P (Ioi (0 : ℝ)) := by
     rw [deriv_P]
     exact Pder_neg (by simpa using hx)
 
-lemma P_zero_and_one :
-    P 0 = 1 ∧ P 1 = -6 := by
+lemma P_zero_and_one : P 0 = 1 ∧ P 1 = -6 := by
   norm_num [P]
 
-lemma exists_P_root :
-    ∃ s ∈ Ioo (0 : ℝ) 1, P s = 0 := by
+lemma exists_P_root : ∃ s ∈ Ioo (0 : ℝ) 1, P s = 0 := by
   have hcont : ContinuousOn P (Icc (0 : ℝ) 1) := by
     unfold P
     fun_prop
   have hzero : (0 : ℝ) ∈ Ioo (P 1) (P 0) := by
     norm_num [P]
-  rcases
-      (intermediate_value_Ioo'
-        (a := (0 : ℝ)) (b := 1) (f := P)
-        (by norm_num) hcont hzero) with
-    ⟨s, hs, hPs⟩
+  rcases (intermediate_value_Ioo' (a := (0 : ℝ)) (b := 1) (f := P)
+      (by norm_num) hcont hzero) with ⟨s, hs, hPs⟩
   exact ⟨s, hs, hPs⟩
 
-lemma P_root_unique
-    {a b : ℝ}
-    (ha : a ∈ Ioo (0 : ℝ) 1)
-    (hb : b ∈ Ioo (0 : ℝ) 1)
-    (hPa : P a = 0)
-    (hPb : P b = 0) :
-    a = b := by
+lemma P_root_unique {a b : ℝ}
+    (ha : a ∈ Ioo (0 : ℝ) 1) (hb : b ∈ Ioo (0 : ℝ) 1)
+    (hPa : P a = 0) (hPb : P b = 0) : a = b := by
   by_contra hne
   rcases lt_or_gt_of_ne hne with hab | hba
   · have h := P_strictAntiOn_pos ha.1 hb.1 hab
@@ -120,28 +100,16 @@ lemma P_root_unique
     rw [hPb, hPa] at h
     exact (lt_irrefl 0) h
 
-def sstar : ℝ :=
-  Classical.choose exists_P_root
+def sstar : ℝ := Classical.choose exists_P_root
+lemma sstar_mem : sstar ∈ Ioo (0 : ℝ) 1 := (Classical.choose_spec exists_P_root).1
+lemma sstar_root : P sstar = 0 := (Classical.choose_spec exists_P_root).2
 
-lemma sstar_mem : sstar ∈ Ioo (0 : ℝ) 1 :=
-  (Classical.choose_spec exists_P_root).1
-
-lemma sstar_root : P sstar = 0 :=
-  (Classical.choose_spec exists_P_root).2
-
-lemma sstar_unique
-    {s : ℝ}
-    (hs : s ∈ Ioo (0 : ℝ) 1)
-    (hPs : P s = 0) :
-    s = sstar :=
+lemma sstar_unique {s : ℝ} (hs : s ∈ Ioo (0 : ℝ) 1) (hPs : P s = 0) : s = sstar :=
   P_root_unique hs sstar_mem hPs sstar_root
 
-lemma P_nine_twentieths_pos :
-    0 < P ((9 : ℝ) / 20) := by
-  norm_num [P]
+lemma P_nine_twentieths_pos : 0 < P ((9 : ℝ) / 20) := by norm_num [P]
 
-lemma sstar_gt_nine_twentieths :
-    (9 : ℝ) / 20 < sstar := by
+lemma sstar_gt_nine_twentieths : (9 : ℝ) / 20 < sstar := by
   by_contra hnot
   have hle : sstar ≤ (9 : ℝ) / 20 := le_of_not_gt hnot
   have hne : sstar ≠ (9 : ℝ) / 20 := by
@@ -149,18 +117,11 @@ lemma sstar_gt_nine_twentieths :
     have h := sstar_root
     rw [heq] at h
     norm_num [P] at h
-  have hlt : sstar < (9 : ℝ) / 20 :=
-    lt_of_le_of_ne hle hne
-  have hanti :=
-    P_strictAntiOn_pos sstar_mem.1 (by norm_num) hlt
+  have hlt : sstar < (9 : ℝ) / 20 := lt_of_le_of_ne hle hne
+  have hanti := P_strictAntiOn_pos sstar_mem.1 (by norm_num) hlt
   rw [sstar_root] at hanti
   have hp := P_nine_twentieths_pos
   nlinarith
-
-/-!
-The next identity proves the maximum without differentiating the quotient.
-When `P t = 0`, its right-hand side is `(s-t)^2 * A s t`.
--/
 
 def A (s t : ℝ) : ℝ :=
   s ^ 2 * (t ^ 3 + t + 1)
@@ -168,121 +129,86 @@ def A (s t : ℝ) : ℝ :=
     + (t ^ 5 + 2 * t ^ 3 + 3 * t ^ 2 - t + 1)
 
 lemma comparison_identity (s t : ℝ) :
-    N t * D s - N s * D t
-      = (s - t) ^ 2 * A s t - (s - t) * P t := by
+    N t * D s - N s * D t = (s - t) ^ 2 * A s t - (s - t) * P t := by
   unfold N D A P
   ring
 
-lemma A_pos
-    {s t : ℝ}
-    (hs : 0 ≤ s)
-    (ht : (9 : ℝ) / 20 < t) :
-    0 < A s t := by
+lemma A_pos {s t : ℝ} (hs : 0 ≤ s) (ht : (9 : ℝ) / 20 < t) : 0 < A s t := by
   have ht0 : 0 < t := by nlinarith
   have ht2 : 0 ≤ t ^ 2 := sq_nonneg t
   have ht3 : 0 ≤ t ^ 3 := by positivity
   have ht4 : 0 ≤ t ^ 4 := by positivity
   have ht5 : 0 ≤ t ^ 5 := by positivity
-
-  have hprod :
-      0 < (t - (9 : ℝ) / 20) * (t + (9 : ℝ) / 20) := by
+  have hprod : 0 < (t - (9 : ℝ) / 20) * (t + (9 : ℝ) / 20) := by
     apply mul_pos
     · linarith
     · nlinarith
-  have ht2lower : ((9 : ℝ) / 20) ^ 2 < t ^ 2 := by
-    nlinarith
-
-  have hc1 : 0 < t ^ 3 + t + 1 := by
-    nlinarith
-  have hc2 : 0 < t ^ 4 + t ^ 2 + 2 * t - 1 := by
-    nlinarith
+  have ht2lower : ((9 : ℝ) / 20) ^ 2 < t ^ 2 := by nlinarith
+  have hc1 : 0 < t ^ 3 + t + 1 := by nlinarith
+  have hc2 : 0 < t ^ 4 + t ^ 2 + 2 * t - 1 := by nlinarith
   have hc3 : 0 < t ^ 5 + 2 * t ^ 3 + 3 * t ^ 2 - t + 1 := by
     have hquad : 0 < 3 * t ^ 2 - t + 1 := by
       nlinarith [sq_nonneg (6 * t - 1)]
     nlinarith
-
-  have hterm1 :
-      0 ≤ s ^ 2 * (t ^ 3 + t + 1) :=
+  have hterm1 : 0 ≤ s ^ 2 * (t ^ 3 + t + 1) :=
     mul_nonneg (sq_nonneg s) (le_of_lt hc1)
-  have hterm2 :
-      0 ≤ s * (t ^ 4 + t ^ 2 + 2 * t - 1) :=
+  have hterm2 : 0 ≤ s * (t ^ 4 + t ^ 2 + 2 * t - 1) :=
     mul_nonneg hs (le_of_lt hc2)
-
   unfold A
   nlinarith
 
-lemma F_le_sstar
-    {s : ℝ}
-    (hs : s ∈ Icc (0 : ℝ) 1) :
-    F s ≤ F sstar := by
-  have hA : 0 < A s sstar :=
-    A_pos hs.1 sstar_gt_nine_twentieths
-  have hid :
-      N sstar * D s - N s * D sstar
-        = (s - sstar) ^ 2 * A s sstar := by
+lemma F_le_sstar {s : ℝ} (hs : s ∈ Icc (0 : ℝ) 1) : F s ≤ F sstar := by
+  have hA : 0 < A s sstar := A_pos hs.1 sstar_gt_nine_twentieths
+  have hid : N sstar * D s - N s * D sstar = (s - sstar) ^ 2 * A s sstar := by
     have h := comparison_identity s sstar
     rw [sstar_root] at h
     simpa using h
   have hcross : N s * D sstar ≤ N sstar * D s := by
-    have hnonneg :
-        0 ≤ (s - sstar) ^ 2 * A s sstar :=
+    have hnonneg : 0 ≤ (s - sstar) ^ 2 * A s sstar :=
       mul_nonneg (sq_nonneg (s - sstar)) (le_of_lt hA)
     nlinarith
   unfold F
   exact (div_le_div_iff₀ (D_pos s) (D_pos sstar)).2 hcross
 
-lemma F_lt_sstar
-    {s : ℝ}
-    (hs : s ∈ Icc (0 : ℝ) 1)
-    (hne : s ≠ sstar) :
-    F s < F sstar := by
-  have hA : 0 < A s sstar :=
-    A_pos hs.1 sstar_gt_nine_twentieths
+lemma F_lt_sstar {s : ℝ} (hs : s ∈ Icc (0 : ℝ) 1) (hne : s ≠ sstar) : F s < F sstar := by
+  have hA : 0 < A s sstar := A_pos hs.1 sstar_gt_nine_twentieths
   have hdiff : s - sstar ≠ 0 := sub_ne_zero.mpr hne
   have hsquare : 0 < (s - sstar) ^ 2 := by
     simpa [pow_two] using (mul_self_pos.mpr hdiff)
-  have hid :
-      N sstar * D s - N s * D sstar
-        = (s - sstar) ^ 2 * A s sstar := by
+  have hid : N sstar * D s - N s * D sstar = (s - sstar) ^ 2 * A s sstar := by
     have h := comparison_identity s sstar
     rw [sstar_root] at h
     simpa using h
   have hcross : N s * D sstar < N sstar * D s := by
-    have hpos : 0 < (s - sstar) ^ 2 * A s sstar :=
-      mul_pos hsquare hA
+    have hpos : 0 < (s - sstar) ^ 2 * A s sstar := mul_pos hsquare hA
     nlinarith
   unfold F
   exact (div_lt_div_iff₀ (D_pos s) (D_pos sstar)).2 hcross
 
 theorem sstar_is_unique_maximizer :
-    sstar ∈ Ioo (0 : ℝ) 1
-      ∧ (∀ s ∈ Icc (0 : ℝ) 1, F s ≤ F sstar)
-      ∧ (∀ s ∈ Icc (0 : ℝ) 1, F s = F sstar → s = sstar) := by
+    sstar ∈ Ioo (0 : ℝ) 1 ∧
+      (∀ s ∈ Icc (0 : ℝ) 1, F s ≤ F sstar) ∧
+      (∀ s ∈ Icc (0 : ℝ) 1, F s = F sstar → s = sstar) := by
   refine ⟨sstar_mem, ?_, ?_⟩
-  · intro s hs
-    exact F_le_sstar hs
+  · intro s hs; exact F_le_sstar hs
   · intro s hs heq
     by_contra hne
     have hlt := F_lt_sstar hs hne
     linarith
-
-/-! ## Elimination without resultants -/
 
 def H (s : ℝ) : ℝ :=
   31 * s ^ 12 - 42 * s ^ 11 + 133 * s ^ 10 - 112 * s ^ 9
     + 191 * s ^ 8 - 86 * s ^ 7 + 103 * s ^ 6 + 12 * s ^ 5
     + 17 * s ^ 4 + 34 * s ^ 3 + 19 * s ^ 2 + 8 * s + 16
 
-lemma elimination_identity (s : ℝ) :
-    D s ^ 6 * Q (F s) = -P s ^ 2 * H s := by
+lemma elimination_identity (s : ℝ) : D s ^ 6 * Q (F s) = -P s ^ 2 * H s := by
   have hd : D s ≠ 0 := D_ne_zero s
   unfold F Q
   field_simp [hd]
   unfold N D P H
   ring
 
-def gamma : ℝ :=
-  F sstar
+def gamma : ℝ := F sstar
 
 theorem Q_gamma : Q gamma = 0 := by
   have h := elimination_identity sstar
@@ -292,72 +218,48 @@ theorem Q_gamma : Q gamma = 0 := by
     (mul_eq_zero.mp hzero).resolve_left (pow_ne_zero 6 (D_ne_zero sstar))
   simpa [gamma] using hq
 
-/-! ## The relevant real root of Q -/
-
 lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
-  simp [Q, Qder]
+  unfold Q Qder
+  simp
   ring
 
 lemma Qder_shift (y : ℝ) :
-    Qder ((6 : ℝ) / 5 + y)
-      = 864 * y ^ 5 + 2544 * y ^ 4 + (11808 / 5 : ℝ) * y ^ 3
-        + (19788 / 25 : ℝ) * y ^ 2
-        + (22714 / 125 : ℝ) * y
+    Qder ((6 : ℝ) / 5 + y) =
+      864 * y ^ 5 + 2544 * y ^ 4 + (11808 / 5 : ℝ) * y ^ 3
+        + (19788 / 25 : ℝ) * y ^ 2 + (22714 / 125 : ℝ) * y
         + (236814 / 3125 : ℝ) := by
   unfold Qder
   ring
 
-lemma Qder_pos
-    {x : ℝ}
-    (hx : (6 : ℝ) / 5 ≤ x) :
-    0 < Qder x := by
+lemma Qder_pos {x : ℝ} (hx : (6 : ℝ) / 5 ≤ x) : 0 < Qder x := by
   let y : ℝ := x - (6 : ℝ) / 5
-  have hy : 0 ≤ y := by
-    dsimp [y]
-    linarith
-  have hxrepr : x = (6 : ℝ) / 5 + y := by
-    dsimp [y]
-    ring
+  have hy : 0 ≤ y := by dsimp [y]; linarith
+  have hxrepr : x = (6 : ℝ) / 5 + y := by dsimp [y]; ring
   rw [hxrepr, Qder_shift]
   positivity
 
-lemma Q_strictMonoOn :
-    StrictMonoOn Q (Ici ((6 : ℝ) / 5)) := by
+lemma Q_strictMonoOn : StrictMonoOn Q (Ici ((6 : ℝ) / 5)) := by
   apply strictMonoOn_of_deriv_pos (convex_Ici ((6 : ℝ) / 5))
   · unfold Q
     fun_prop
   · intro x hx
     rw [deriv_Q]
-    exact Qder_pos (by simpa using hx)
+    exact Qder_pos (le_of_lt (by simpa using hx))
 
-lemma F_half :
-    F ((1 : ℝ) / 2) = (26 : ℝ) / 21 := by
-  norm_num [F, N, D]
+lemma F_half : F ((1 : ℝ) / 2) = (26 : ℝ) / 21 := by norm_num [F, N, D]
 
-lemma gamma_gt_six_fifths :
-    (6 : ℝ) / 5 < gamma := by
-  have hmax :
-      F ((1 : ℝ) / 2) ≤ F sstar :=
-    F_le_sstar (by norm_num)
+lemma gamma_gt_six_fifths : (6 : ℝ) / 5 < gamma := by
+  have hmax : F ((1 : ℝ) / 2) ≤ F sstar := F_le_sstar (by norm_num)
   rw [F_half] at hmax
   unfold gamma
   nlinarith
 
-lemma Q_six_fifths :
-    Q ((6 : ℝ) / 5) = -(49351 : ℝ) / 15625 := by
-  norm_num [Q]
+lemma Q_six_fifths : Q ((6 : ℝ) / 5) = -(49351 : ℝ) / 15625 := by norm_num [Q]
+lemma Q_thirteen_tenths : Q ((13 : ℝ) / 10) = (88379 : ℝ) / 15625 := by norm_num [Q]
 
-lemma Q_thirteen_tenths :
-    Q ((13 : ℝ) / 10) = (88379 : ℝ) / 15625 := by
-  norm_num [Q]
-
-theorem Q_root_unique_above_six_fifths
-    {x : ℝ}
-    (hx : (6 : ℝ) / 5 ≤ x)
-    (hQx : Q x = 0) :
-    x = gamma := by
-  have hgamma : (6 : ℝ) / 5 ≤ gamma :=
-    le_of_lt gamma_gt_six_fifths
+theorem Q_root_unique_above_six_fifths {x : ℝ}
+    (hx : (6 : ℝ) / 5 ≤ x) (hQx : Q x = 0) : x = gamma := by
+  have hgamma : (6 : ℝ) / 5 ≤ gamma := le_of_lt gamma_gt_six_fifths
   by_contra hne
   rcases lt_or_gt_of_ne hne with hxg | hgx
   · have hlt := Q_strictMonoOn hx hgamma hxg
@@ -373,23 +275,13 @@ def gammaLower : ℝ :=
 def gammaUpper : ℝ :=
   (12395667407265985397097751707397283370138 : ℝ) / 10 ^ 40
 
-lemma Q_gammaLower_neg :
-    Q gammaLower < 0 := by
-  norm_num [gammaLower, Q]
+lemma Q_gammaLower_neg : Q gammaLower < 0 := by norm_num [gammaLower, Q]
+lemma Q_gammaUpper_pos : 0 < Q gammaUpper := by norm_num [gammaUpper, Q]
 
-lemma Q_gammaUpper_pos :
-    0 < Q gammaUpper := by
-  norm_num [gammaUpper, Q]
-
-theorem gamma_exact_enclosure :
-    gammaLower < gamma ∧ gamma < gammaUpper := by
-  have hLdom : (6 : ℝ) / 5 ≤ gammaLower := by
-    norm_num [gammaLower]
-  have hUdom : (6 : ℝ) / 5 ≤ gammaUpper := by
-    norm_num [gammaUpper]
-  have hgdom : (6 : ℝ) / 5 ≤ gamma :=
-    le_of_lt gamma_gt_six_fifths
-
+theorem gamma_exact_enclosure : gammaLower < gamma ∧ gamma < gammaUpper := by
+  have hLdom : (6 : ℝ) / 5 ≤ gammaLower := by norm_num [gammaLower]
+  have hUdom : (6 : ℝ) / 5 ≤ gammaUpper := by norm_num [gammaUpper]
+  have hgdom : (6 : ℝ) / 5 ≤ gamma := le_of_lt gamma_gt_six_fifths
   constructor
   · by_contra hnot
     have hge : gamma ≤ gammaLower := le_of_not_gt hnot
@@ -410,27 +302,15 @@ theorem gamma_exact_enclosure :
       rw [Q_gamma] at hmono
       nlinarith [Q_gammaUpper_pos]
 
-/-! ## Optimizer enclosure -/
+def sLower : ℝ := (464087083432496056 : ℝ) / 10 ^ 18
+def sUpper : ℝ := (464087083432496057 : ℝ) / 10 ^ 18
 
-def sLower : ℝ :=
-  (464087083432496056 : ℝ) / 10 ^ 18
+lemma P_sLower_pos : 0 < P sLower := by norm_num [sLower, P]
+lemma P_sUpper_neg : P sUpper < 0 := by norm_num [sUpper, P]
 
-def sUpper : ℝ :=
-  (464087083432496057 : ℝ) / 10 ^ 18
-
-lemma P_sLower_pos :
-    0 < P sLower := by
-  norm_num [sLower, P]
-
-lemma P_sUpper_neg :
-    P sUpper < 0 := by
-  norm_num [sUpper, P]
-
-theorem sstar_exact_enclosure :
-    sLower < sstar ∧ sstar < sUpper := by
+theorem sstar_exact_enclosure : sLower < sstar ∧ sstar < sUpper := by
   have hLpos : 0 < sLower := by norm_num [sLower]
   have hUpos : 0 < sUpper := by norm_num [sUpper]
-
   constructor
   · by_contra hnot
     have hle : sstar ≤ sLower := le_of_not_gt hnot
@@ -451,80 +331,28 @@ theorem sstar_exact_enclosure :
       rw [sstar_root] at hanti
       nlinarith [P_sUpper_neg]
 
-/-! ## Polynomial form over Z and Q -/
-
 def QZ : Polynomial ℤ :=
   C 144 * X ^ 6 - C 528 * X ^ 5 + C 648 * X ^ 4
     - C 220 * X ^ 3 - C 71 * X ^ 2 + C 42 * X - C 31
 
-def QQ : Polynomial ℚ :=
-  QZ.map (Int.castRingHom ℚ)
+def QQ : Polynomial ℚ := QZ.map (Int.castRingHom ℚ)
 
-/-
-FORMALIZATION GAP 1.
-
-The paper proves irreducibility by reducing modulo 5 and checking Rabin's
-degree-six criterion:
-  gcd(q, X^(5^2)-X) = 1,
-  gcd(q, X^(5^3)-X) = 1,
-  X^(5^6)-X = 0 mod q.
-
-Mathlib contains polynomial gcds, finite fields, and irreducibility APIs, so
-this is formalizable. What is missing is a short robust bridge from those
-specific computations to the desired theorem. One can either:
-* prove a local degree-six Rabin lemma and discharge the finite identities by
-  `native_decide`, or
-* give an explicit `Irreducible` proof for the ZMod 5 polynomial and lift it.
--/
-theorem QQ_irreducible :
-    Irreducible QQ := by
+theorem QQ_irreducible : Irreducible QQ := by
   sorry
 
-/-
-FORMALIZATION GAP 2.
-
-The paper invokes an exact Sturm sequence to show that Q has precisely two real
-roots. Mathlib has extensive real-polynomial and root-multiplicity machinery,
-but I did not find a ready-made tactic/API that accepts the paper's Sturm
-certificate and returns this cardinality. A small Sturm-chain development (or
-an alternative interval-plus-complex-root proof) is needed.
--/
-theorem Q_has_exactly_two_real_roots :
-    Set.encard {x : ℝ | Q x = 0} = 2 := by
+theorem Q_has_exactly_two_real_roots : Set.encard {x : ℝ | Q x = 0} = 2 := by
   sorry
-
-/-! ## Integral scaling -/
 
 def RZ : Polynomial ℤ :=
   X ^ 6 - C 22 * X ^ 5 + C 162 * X ^ 4 - C 330 * X ^ 3
     - C 639 * X ^ 2 + C 2268 * X - C 10044
 
-/-
-FORMALIZATION GAP 3 (routine API plumbing, not a mathematical obstacle).
-
-The identity R(6*gamma)=324*Q(gamma)=0 is an exact ring calculation, and RZ is
-monic. This should close with `IsIntegral.of_aeval_monic`; the remaining work
-is to normalize `aeval` from Z into R cleanly for the chosen Mathlib version.
--/
-theorem six_mul_gamma_isIntegral :
-    IsIntegral ℤ (6 * gamma) := by
+theorem six_mul_gamma_isIntegral : IsIntegral ℤ (6 * gamma) := by
   sorry
 
-/-
-FORMALIZATION GAP 4.
-
-Minimality uses the monic minimal polynomial of d*gamma and its y^5 and y^4
-coefficients, -11d/3 and 9d^2/2. To make that argument kernel-checkable one
-first needs `QQ_irreducible`, then a minpoly identification under scaling.
-Mathlib has `minpoly.eq_of_irreducible_of_monic`, but the scaled-polynomial
-coefficient bookkeeping still has to be supplied.
--/
-theorem six_is_minimal_integral_scaling
-    {d : ℕ}
-    (hd : IsIntegral ℤ ((d : ℝ) * gamma)) :
-    6 ∣ d := by
+theorem six_is_minimal_integral_scaling {d : ℕ}
+    (hd : IsIntegral ℤ ((d : ℝ) * gamma)) : 6 ∣ d := by
   sorry
 
 end
-
 end Raigorodskii
