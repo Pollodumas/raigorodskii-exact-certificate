@@ -18,10 +18,10 @@ def RZ : Polynomial ℤ :=
 
 lemma RZ_monic : RZ.Monic := by
   unfold RZ
-  monicity
+  monicity <;> norm_num
 
 lemma RZ_eval_identity (x : ℝ) :
-    eval₂ (Int.castRingHom ℝ) (6 * x) RZ = 324 * Q x := by
+    eval₂ (algebraMap ℤ ℝ) (6 * x) RZ = 324 * Q x := by
   simp [RZ, Q]
   ring
 
