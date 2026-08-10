@@ -33,6 +33,8 @@ jobs:
         run: lake env lean lean/IntegralScratch.lean
       - name: Test coefficientwise linear-factor obstruction
         run: lake env lean lean/LinearDivisorScratch.lean
+      - name: Test coefficientwise quadratic-factor obstruction
+        run: lake env lean lean/QuadraticDivisorScratch.lean
       - name: Apply proved patches
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
