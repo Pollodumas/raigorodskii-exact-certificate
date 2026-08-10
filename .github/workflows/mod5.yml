@@ -1,0 +1,20 @@
+name: Lean finite-field probe
+
+on:
+  pull_request:
+
+jobs:
+  mod5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Update dependencies
+        run: lake update
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Check irreducibility over ZMod 5
+        run: lake env lean lean/IrreducibilityMod5Scratch.lean
