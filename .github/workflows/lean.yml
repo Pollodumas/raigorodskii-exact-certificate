@@ -23,8 +23,11 @@ jobs:
         run: lake update
       - name: Fetch Mathlib cache
         run: lake exe cache get
-      - name: Build
+      - name: Test derivative scratch
+        run: lake env lean lean/DerivativeScratch.lean
+      - name: Build certificate
         run: lake build
       - name: Report remaining sorry declarations
+        if: always()
         run: |
           grep -RIn --include='*.lean' '\bsorry\b' lean || true
