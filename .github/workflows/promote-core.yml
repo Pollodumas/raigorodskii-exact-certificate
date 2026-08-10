@@ -1,0 +1,38 @@
+name: Promote verified core proofs
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'lean-formalization'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Update dependencies
+        run: lake update
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Promote only kernel-checked replacements
+        run: python scripts/promote_core_proofs.py
+      - name: Commit promoted proofs
+        run: |
+          if git diff --quiet; then
+            echo 'No new proof was promotable.'
+            exit 0
+          fi
+          git config user.name 'raigorodskii-lean-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add lean/RaigorodskiiCertificate.lean
+          git commit -m 'Promote kernel-checked core proofs'
+          git push origin HEAD:${GITHUB_HEAD_REF}
