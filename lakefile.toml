@@ -1,4 +1,4 @@
-name = "raigorodskii-exact-certificate"
+name = "raigorodskiiExactCertificate"
 version = "0.1.0"
 defaultTargets = ["RaigorodskiiCertificate"]
 
