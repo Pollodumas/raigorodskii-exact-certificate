@@ -31,6 +31,9 @@ jobs:
         run: lake env lean lean/DerivativeScratch.lean
       - name: Test integrality scratch
         run: lake env lean lean/IntegralScratch.lean
+      - name: Probe finite-field factor forms
+        continue-on-error: true
+        run: lake env lean lean/FactorFormScratch.lean
       - name: Probe finite-field irreducibility scratch
         continue-on-error: true
         run: lake env lean lean/IrreducibleScratch.lean
