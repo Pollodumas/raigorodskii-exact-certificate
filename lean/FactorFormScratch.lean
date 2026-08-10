@@ -15,14 +15,14 @@ noncomputable def q5 : Polynomial F5 :=
 
 lemma q5_monic : q5.Monic := by
   unfold q5
-  monicity
+  monicity <;> norm_num
 
 lemma q5_natDegree : q5.natDegree = 6 := by
-  rw [q5_monic.natDegree_eq_iff_degree_eq]
-  norm_num [q5]
+  unfold q5
+  compute_degree!
 
 lemma q5_no_root (x : F5) : ¬ IsRoot q5 x := by
-  fin_cases x <;> norm_num [q5, IsRoot]
+  fin_cases x <;> simp [q5, IsRoot] <;> native_decide
 
 lemma monic_degree_two_form (g : Polynomial F5) (hg : g.Monic)
     (hdeg : g.natDegree = 2) :
