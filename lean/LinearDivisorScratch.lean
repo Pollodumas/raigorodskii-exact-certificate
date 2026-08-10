@@ -95,7 +95,7 @@ lemma lin_not_dvd_q5 (a : F5) : ¬ lin a ∣ q5 := by
   have hc0 := congrArg (fun p : Polynomial F5 => p.coeff 0) hfac
   rw [coeff_lin_mul_zero] at hc0
   simp [q5, coeff_one, h0] at hc0
-  have hbad : (1 : F5) ≠ a * (-a ^ 5 + 3 * a ^ 4 - 2 * a ^ 3 - a + 3) := by
+  have hbad : (1 : F5) ≠ a * (-a + 3 * a ^ 4 - 2 * a ^ 3 - a + 3) := by
     fin_cases a <;> native_decide
   exact hbad hc0
 
