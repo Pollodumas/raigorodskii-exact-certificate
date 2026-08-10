@@ -1,0 +1,5 @@
+import RaigorodskiiIntegrality
+import RootCountScratch
+
+#print axioms Raigorodskii.six_mul_gamma_isIntegral_verified
+#print axioms Raigorodskii.Q_has_exactly_two_real_roots_verified
