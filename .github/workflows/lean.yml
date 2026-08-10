@@ -31,8 +31,8 @@ jobs:
         run: lake env lean lean/DerivativeScratch.lean
       - name: Test integrality scratch
         run: lake env lean lean/IntegralScratch.lean
-      - name: Test coefficientwise linear-factor identities
-        run: lake env lean lean/LinIdentityScratch.lean
+      - name: Test coefficientwise linear-factor obstruction
+        run: lake env lean lean/LinearDivisorScratch.lean
       - name: Apply proved patches
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
