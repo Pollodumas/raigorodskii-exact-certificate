@@ -31,11 +31,8 @@ jobs:
         run: lake env lean lean/DerivativeScratch.lean
       - name: Test integrality scratch
         run: lake env lean lean/IntegralScratch.lean
-      - name: Probe finite-field factor forms
-        continue-on-error: true
-        run: lake env lean lean/FactorFormScratch.lean
-      - name: Test explicit irreducibility certificate over F5
-        run: lake env lean lean/IrreducibilityFactorsScratch.lean
+      - name: Test exhaustive irreducibility certificate over F5
+        run: lake env lean lean/IrreducibilityExhaustiveScratch.lean
       - name: Apply proved patches
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
