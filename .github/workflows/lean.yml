@@ -1,0 +1,28 @@
+name: Lean CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Update dependencies
+        run: lake update
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Build
+        run: lake build
+      - name: Reject new sorry declarations in CI-clean branch
+        run: |
+          if grep -RIn --include='*.lean' '\bsorry\b' lean; then
+            echo 'Lean source still contains sorry declarations.'
+            exit 1
+          fi
