@@ -38,6 +38,8 @@ jobs:
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
         run: lake build
+      - name: Test exact real-root count
+        run: lake env lean lean/RealRootsScratch.lean
       - name: Report remaining sorry declarations
         if: always()
         run: |
