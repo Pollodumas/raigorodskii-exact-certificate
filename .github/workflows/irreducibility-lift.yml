@@ -1,0 +1,20 @@
+name: Lean irreducibility lift
+
+on:
+  pull_request:
+
+jobs:
+  irreducibility-lift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Update dependencies
+        run: lake update
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Check irreducibility lifting proof
+        run: lake env lean lean/IrreducibilityLiftScratch.lean
