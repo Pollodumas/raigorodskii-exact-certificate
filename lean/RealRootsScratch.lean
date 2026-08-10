@@ -95,7 +95,12 @@ lemma BernsteinRhs_pos {u v : ℝ}
     (hu : 0 ≤ u) (hv : 0 ≤ v) (huv : 0 < u + v) :
     0 < BernsteinRhs u v := by
   have hpos : 0 < u ∨ 0 < v := by
-    nlinarith
+    by_cases hu0 : u = 0
+    · right
+      rw [hu0, zero_add] at huv
+      exact huv
+    · left
+      exact lt_of_le_of_ne hu (Ne.symm hu0)
   rcases hpos with hu' | hv'
   · unfold BernsteinRhs
     positivity
@@ -114,7 +119,7 @@ lemma Q_neg_middle {x : ℝ}
     linarith [hx.2]
   have huv : 0 < u + v := by
     dsimp [u, v]
-    norm_num
+    nlinarith
   have hB : 0 < BernsteinRhs u v := BernsteinRhs_pos hu hv huv
   have hid := bernstein_identity x
   change (84000000 : ℝ) * 29 ^ 7 * (-Q x) = BernsteinRhs u v at hid
@@ -158,7 +163,10 @@ lemma rneg_ne_gamma : rneg ≠ gamma := by
 theorem Q_has_exactly_two_real_roots_scratch :
     Set.encard {x : ℝ | Q x = 0} = 2 := by
   rw [roots_set_eq]
-  simp [rneg_ne_gamma]
+  have hnot : rneg ∉ ({gamma} : Set ℝ) := by
+    simpa using rneg_ne_gamma
+  rw [Set.encard_insert_of_notMem hnot, Set.encard_singleton]
+  norm_num
 
 end
 end Raigorodskii
