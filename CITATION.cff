@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this certificate or its verification code, please cite the manuscript."
+title: "An Exact Algebraic Certificate for the Raigorodskii Lower-Bound Constant"
+version: "0.8"
+date-released: 2026-07-28
+authors:
+  - family-names: "Paz Marchese"
+    given-names: "Joaquín"
+repository-code: "https://github.com/Pollodumas/raigorodskii-exact-certificate"
+type: software
