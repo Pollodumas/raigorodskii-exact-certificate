@@ -48,6 +48,21 @@ def Qder (x : ℝ) : ℝ :=
   864 * x ^ 5 - 2640 * x ^ 4 + 2592 * x ^ 3
     - 660 * x ^ 2 - 142 * x + 42
 
+def pPoly : Polynomial ℝ :=
+  C 1 - C 2 * X + C 2 * X ^ 2 - C 4 * X ^ 3 - C 2 * X ^ 4 - X ^ 6
+
+def qPoly : Polynomial ℝ :=
+  C 144 * X ^ 6 - C 528 * X ^ 5 + C 648 * X ^ 4 - C 220 * X ^ 3
+    - C 71 * X ^ 2 + C 42 * X - C 31
+
+lemma P_eq_eval (s : ℝ) : P s = pPoly.eval s := by
+  simp [P, pPoly]
+  ring
+
+lemma Q_eq_eval (x : ℝ) : Q x = qPoly.eval x := by
+  simp [Q, qPoly]
+  ring
+
 lemma D_pos (s : ℝ) : 0 < D s := by
   unfold D
   nlinarith [sq_nonneg s, sq_nonneg (s ^ 2)]
@@ -55,9 +70,11 @@ lemma D_pos (s : ℝ) : 0 < D s := by
 lemma D_ne_zero (s : ℝ) : D s ≠ 0 := ne_of_gt (D_pos s)
 
 lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
-  unfold P Pder
-  simp
-  ring
+  have hfun : P = fun x => pPoly.eval x := by
+    funext x
+    exact P_eq_eval x
+  rw [hfun]
+  simpa [pPoly, Pder] using (pPoly.hasDerivAt s).deriv
 
 lemma Pder_neg {s : ℝ} (hs : 0 < s) : Pder s < 0 := by
   have hquad : 0 < 12 * s ^ 2 - 4 * s + 2 := by
@@ -219,9 +236,11 @@ theorem Q_gamma : Q gamma = 0 := by
   simpa [gamma] using hq
 
 lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
-  unfold Q Qder
-  simp
-  ring
+  have hfun : Q = fun y => qPoly.eval y := by
+    funext y
+    exact Q_eq_eval y
+  rw [hfun]
+  simpa [qPoly, Qder] using (qPoly.hasDerivAt x).deriv
 
 lemma Qder_shift (y : ℝ) :
     Qder ((6 : ℝ) / 5 + y) =
