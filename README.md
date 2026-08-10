@@ -1,33 +1,47 @@
-# Raigorodskii exact certificate
+# Exact algebraic certificate for the Raigorodskii lower-bound constant
 
-Exact algebraic certification and Lean formalization of the one-variable constant appearing in the Raigorodskii lower bound for the chromatic number of Euclidean space, as recovered through Näslund's formulation.
+This repository contains a short mathematical note, two independent exact-arithmetic verifiers, and a Lean 4 formalization of the analytic and real-algebraic core.
 
-## Current status
+For Naslund's one-variable formulation at `(k,m,l) = (1,1,3)`, define
 
-The mathematical note is at draft **v0.8**. The exact-computation package has two independent verification programs and checksums. A Lean 4 + Mathlib formalization is in progress.
+\[
+F(s)=\frac{1+s+s^3}{1+s^2+s^4}, \qquad 0<s<1.
+\]
 
-The Lean development currently targets the elementary real-algebraic core:
+Its maximum `gamma_R` is the unique real root greater than `1.2` of
 
-- positivity of the denominator;
-- existence and uniqueness of the optimizer `sstar`;
-- uniqueness of the maximizer of the rational function;
-- the direct elimination identity yielding `Q(gamma)=0`;
-- strict monotonicity of `Q` above `6/5`;
-- exact enclosures of `gamma` and `sstar`;
-- the integral model for `6 * gamma`.
+\[
+144x^6-528x^5+648x^4-220x^3-71x^2+42x-31.
+\]
 
-The initial autoformalization received from Ingo Althöfer contained four `sorry` declarations and had not been compiled. This repository pins Lean and Mathlib and uses CI so that every subsequent claim is checked by the Lean kernel.
+The exact certified enclosure is
 
-## Formalization gaps being closed
+\[
+1.2395667407265985397097751707397283370137
+< \gamma_R <
+1.2395667407265985397097751707397283370138.
+\]
 
-1. irreducibility of the sextic over `ℚ`;
-2. exact count of the real roots;
-3. algebraic integrality of `6 * gamma`;
-4. minimality of the positive integral scaling factor `6`.
+## Contents
 
-The Galois-group / non-solvability-by-radicals corollary is treated as a separate later module.
+- `paper/`: manuscript v0.8 in PDF and LaTeX, plus its changelog.
+- `verification/verify_raigorodskii_certificate_v0_8.py`: exact SymPy verifier.
+- `verification/verify_raigorodskii_certificate_stdlib_v0_8.py`: independent verifier using only the Python standard library.
+- `docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md`: adversarial audit and reproducibility record.
+- `lean/RaigorodskiiCertificate.lean`: kernel-checked Lean core with no placeholder proofs.
 
-## Build
+## Exact verification
+
+```bash
+python -m pip install -r verification/requirements_raigorodskii_v0_8.txt
+python verification/verify_raigorodskii_certificate_v0_8.py
+python verification/verify_raigorodskii_certificate_stdlib_v0_8.py
+sha256sum -c SHA256SUMS
+```
+
+The two programs independently check the elimination polynomial, irreducibility, exact root isolation, the two-real-root count, the integral model for `6 gamma_R`, the minimal scaling factor `6`, and the modular certificates used for the `S_6` Galois-group conclusion.
+
+## Lean status
 
 ```bash
 lake update
@@ -35,12 +49,22 @@ lake exe cache get
 lake build
 ```
 
-The CI workflow runs the same build against the pinned toolchain.
+The Lean module formalizes:
 
-## Paper and exact verification
+- positivity of the denominator;
+- existence and uniqueness of the optimizer;
+- uniqueness of the maximizer on `[0,1]`;
+- the elimination identity and `Q(gamma_R)=0`;
+- strict monotonicity of `Q` above `6/5`;
+- exact rational enclosures of the optimizer and the constant;
+- algebraic integrality of `6 gamma_R`.
 
-See `paper/` and `verification/`.
+It deliberately does **not** claim a complete formalization of irreducibility over `Q`, the global two-real-root count, minimality of the scaling factor, or the Galois group. Those statements remain certified by the independent exact-arithmetic programs and proved in the manuscript.
 
-## Authorship and provenance
+## Scope
 
-Joaquín Paz Marchese. The project uses a multi-model AI-assisted research workflow together with exact computation and adversarial cross-checking. AI systems are not listed as authors.
+The result does not improve Raigorodskii's asymptotic lower bound. It gives an explicit exact algebraic certificate for the numerical constant recovered through Naslund's formulation.
+
+## Provenance and AI assistance
+
+Joaquin Paz Marchese directed a multi-model AI-assisted research process combining mathematical sources, exact computation, adversarial review, and repeated independent cross-checking. The manuscript contains a detailed disclosure. AI systems are not listed as authors.
