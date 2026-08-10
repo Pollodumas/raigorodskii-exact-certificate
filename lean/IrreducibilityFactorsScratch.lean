@@ -1,6 +1,7 @@
 import Mathlib
 
 set_option autoImplicit false
+set_option maxHeartbeats 1000000
 
 namespace IrreducibilityFactorsScratch
 
@@ -42,9 +43,8 @@ def linRem (a : F5) : F5 :=
 
 lemma q5_lin_identity (a : F5) :
     q5 = lin a * linQuot a + C (linRem a) := by
-  unfold q5 lin linQuot linRem
-  ring_nf
-  ext (_ | _ | _ | _ | _ | _ | _ | n) <;> simp <;> ring_nf
+  ext (_ | _ | _ | _ | _ | _ | _ | n) <;>
+    simp [q5, lin, linQuot, linRem, coeff_mul] <;> ring
 
 lemma lin_monic (a : F5) : (lin a).Monic := by
   unfold lin
@@ -94,9 +94,8 @@ noncomputable def quadRem (a b : F5) : Polynomial F5 :=
 
 lemma q5_quad_identity (a b : F5) :
     q5 = quad a b * quadQuot a b + quadRem a b := by
-  unfold q5 quad quadQuot quadRem quadRem1 quadRem0
-  ring_nf
-  ext (_ | _ | _ | _ | _ | _ | _ | n) <;> simp <;> ring_nf
+  ext (_ | _ | _ | _ | _ | _ | _ | n) <;>
+    simp [q5, quad, quadQuot, quadRem, quadRem1, quadRem0, coeff_mul] <;> ring
 
 lemma quad_monic (a b : F5) : (quad a b).Monic := by
   unfold quad
@@ -124,7 +123,7 @@ lemma quadRem_natDegree_lt (a b : F5) :
     (quadRem a b).natDegree < (quad a b).natDegree := by
   have hle : (quadRem a b).natDegree ≤ 1 := by
     unfold quadRem
-    compute_degree <;> norm_num
+    compute_degree <;> norm_num <;> omega
   rw [quad_natDegree]
   omega
 
@@ -163,9 +162,8 @@ noncomputable def cubicRem (a b c : F5) : Polynomial F5 :=
 
 lemma q5_cubic_identity (a b c : F5) :
     q5 = cubic a b c * cubicQuot a b c + cubicRem a b c := by
-  unfold q5 cubic cubicQuot cubicRem cubicRem2 cubicRem1 cubicRem0
-  ring_nf
-  ext (_ | _ | _ | _ | _ | _ | _ | n) <;> simp <;> ring_nf
+  ext (_ | _ | _ | _ | _ | _ | _ | n) <;>
+    simp [q5, cubic, cubicQuot, cubicRem, cubicRem2, cubicRem1, cubicRem0, coeff_mul] <;> ring
 
 lemma cubic_monic (a b c : F5) : (cubic a b c).Monic := by
   unfold cubic
@@ -196,7 +194,7 @@ lemma cubicRem_natDegree_lt (a b c : F5) :
     (cubicRem a b c).natDegree < (cubic a b c).natDegree := by
   have hle : (cubicRem a b c).natDegree ≤ 2 := by
     unfold cubicRem
-    compute_degree <;> norm_num
+    compute_degree <;> norm_num <;> omega
   rw [cubic_natDegree]
   omega
 
