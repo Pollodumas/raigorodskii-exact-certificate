@@ -3,11 +3,11 @@ from pathlib import Path
 path = Path("lean/RaigorodskiiCertificate.lean")
 text = path.read_text(encoding="utf-8")
 
-marker = """def Qder (x : ℝ) : ℝ :=
+qder_marker = """def Qder (x : ℝ) : ℝ :=
   864 * x ^ 5 - 2640 * x ^ 4 + 2592 * x ^ 3
     - 660 * x ^ 2 - 142 * x + 42
 """
-insert = marker + """
+qder_insert = qder_marker + """
 
 def pPoly : Polynomial ℝ :=
   C 1 - C 2 * X + C 2 * X ^ 2 - C 4 * X ^ 3 - C 2 * X ^ 4 - X ^ 6
@@ -53,10 +53,37 @@ new_q = """lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
   ring
 """
 
+rz_marker = """def RZ : Polynomial ℤ :=
+  X ^ 6 - C 22 * X ^ 5 + C 162 * X ^ 4 - C 330 * X ^ 3
+    - C 639 * X ^ 2 + C 2268 * X - C 10044
+"""
+rz_insert = rz_marker + """
+
+lemma RZ_monic : RZ.Monic := by
+  unfold RZ
+  monicity <;> norm_num
+
+lemma RZ_eval_identity (x : ℝ) :
+    eval₂ (algebraMap ℤ ℝ) (6 * x) RZ = 324 * Q x := by
+  simp [RZ, Q]
+  ring
+"""
+
+old_integral = """theorem six_mul_gamma_isIntegral : IsIntegral ℤ (6 * gamma) := by
+  sorry
+"""
+new_integral = """theorem six_mul_gamma_isIntegral : IsIntegral ℤ (6 * gamma) := by
+  refine ⟨RZ, RZ_monic, ?_⟩
+  rw [RZ_eval_identity, Q_gamma]
+  norm_num
+"""
+
 for old, new, label in [
-    (marker, insert, "polynomial models"),
+    (qder_marker, qder_insert, "polynomial models"),
     (old_p, new_p, "deriv_P"),
     (old_q, new_q, "deriv_Q"),
+    (rz_marker, rz_insert, "integral model lemmas"),
+    (old_integral, new_integral, "six_mul_gamma_isIntegral"),
 ]:
     count = text.count(old)
     if count != 1:
@@ -64,4 +91,4 @@ for old, new, label in [
     text = text.replace(old, new, 1)
 
 path.write_text(text, encoding="utf-8")
-print("Patched polynomial derivative proofs.")
+print("Patched derivative and integrality proofs.")
