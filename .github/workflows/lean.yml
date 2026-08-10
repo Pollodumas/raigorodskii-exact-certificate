@@ -25,6 +25,8 @@ jobs:
         run: lake exe cache get
       - name: Test derivative scratch
         run: lake env lean lean/DerivativeScratch.lean
+      - name: Test integrality scratch
+        run: lake env lean lean/IntegralScratch.lean
       - name: Apply derivative proof patch
         run: python3 scripts/patch_derivatives.py
       - name: Build certificate
@@ -33,10 +35,12 @@ jobs:
         if: always()
         run: |
           grep -RIn --include='*.lean' '\bsorry\b' lean || true
-      - name: Upload patched Lean source
+      - name: Upload generated sources
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: patched-lean-source
-          path: lean/RaigorodskiiCertificate.lean
+          name: generated-lean-files
+          path: |
+            lean/RaigorodskiiCertificate.lean
+            lake-manifest.json
           if-no-files-found: error
