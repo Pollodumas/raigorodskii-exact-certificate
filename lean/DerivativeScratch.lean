@@ -28,7 +28,6 @@ lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [pPoly, Pder]
-  ring
 
 
 def Q (x : ℝ) : ℝ :=
@@ -54,7 +53,6 @@ lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [qPoly, Qder]
-  ring
 
 end
 end DerivativeScratch
