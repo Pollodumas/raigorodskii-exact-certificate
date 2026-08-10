@@ -30,7 +30,7 @@ lemma q5_ne_zero : q5 ≠ 0 := q5_monic.ne_zero
 
 lemma quad_monic (a b : F5) : (quad a b).Monic := by
   unfold quad
-  monicity
+  monicity <;> compute_degree <;> norm_num <;> omega
 
 lemma quad_natDegree (a b : F5) : (quad a b).natDegree = 2 := by
   unfold quad
@@ -45,7 +45,11 @@ lemma coeff_quad_mul_one (a b : F5) (h : Polynomial F5) :
   have hz : (X ^ 2 * h).coeff 1 = 0 := by
     rw [coeff_X_pow_mul']
     simp
-  simp [quad, add_mul, mul_assoc, hz]
+  have hdecomp :
+      quad a b * h = X ^ 2 * h + C b * (X * h) + C a * h := by
+    simp [quad, add_mul, mul_assoc]
+  rw [hdecomp, coeff_add, coeff_add, hz]
+  simp
 
 lemma coeff_quad_mul_succ2 (a b : F5) (h : Polynomial F5) (n : ℕ) :
     (quad a b * h).coeff (n + 2) =
