@@ -10,6 +10,8 @@ noncomputable section
 
 abbrev F5 := ZMod 5
 
+local instance : Fact (Nat.Prime 5) := ⟨by norm_num⟩
+
 noncomputable def q5 : Polynomial F5 :=
   X ^ 6 + C 3 * X ^ 5 + C 2 * X ^ 4 + X ^ 2 + C 3 * X + C 1
 
@@ -41,7 +43,7 @@ def linRem (a : F5) : F5 :=
 lemma q5_lin_identity (a : F5) :
     q5 = lin a * linQuot a + C (linRem a) := by
   unfold q5 lin linQuot linRem
-  ring
+  ring_nf
 
 lemma lin_monic (a : F5) : (lin a).Monic := by
   unfold lin
@@ -92,7 +94,7 @@ noncomputable def quadRem (a b : F5) : Polynomial F5 :=
 lemma q5_quad_identity (a b : F5) :
     q5 = quad a b * quadQuot a b + quadRem a b := by
   unfold q5 quad quadQuot quadRem quadRem1 quadRem0
-  ring
+  ring_nf
 
 lemma quad_monic (a b : F5) : (quad a b).Monic := by
   unfold quad
@@ -120,7 +122,7 @@ lemma quadRem_natDegree_lt (a b : F5) :
     (quadRem a b).natDegree < (quad a b).natDegree := by
   have hle : (quadRem a b).natDegree ≤ 1 := by
     unfold quadRem
-    compute_degree
+    compute_degree <;> omega
   rw [quad_natDegree]
   omega
 
@@ -160,7 +162,7 @@ noncomputable def cubicRem (a b c : F5) : Polynomial F5 :=
 lemma q5_cubic_identity (a b c : F5) :
     q5 = cubic a b c * cubicQuot a b c + cubicRem a b c := by
   unfold q5 cubic cubicQuot cubicRem cubicRem2 cubicRem1 cubicRem0
-  ring
+  ring_nf
 
 lemma cubic_monic (a b c : F5) : (cubic a b c).Monic := by
   unfold cubic
@@ -191,7 +193,7 @@ lemma cubicRem_natDegree_lt (a b c : F5) :
     (cubicRem a b c).natDegree < (cubic a b c).natDegree := by
   have hle : (cubicRem a b c).natDegree ≤ 2 := by
     unfold cubicRem
-    compute_degree
+    compute_degree <;> omega
   rw [cubic_natDegree]
   omega
 
@@ -211,21 +213,18 @@ lemma monic_degree_one_form (g : Polynomial F5) (hg : g.Monic)
     g = X + C (g.coeff 0) := by
   rw [hg.as_sum, hdeg]
   norm_num [Finset.sum_range_succ]
-  ring
 
 lemma monic_degree_two_form (g : Polynomial F5) (hg : g.Monic)
     (hdeg : g.natDegree = 2) :
     g = X ^ 2 + C (g.coeff 1) * X + C (g.coeff 0) := by
   rw [hg.as_sum, hdeg]
-  norm_num [Finset.sum_range_succ]
-  ring
+  norm_num [Finset.sum_range_succ] <;> ring
 
 lemma monic_degree_three_form (g : Polynomial F5) (hg : g.Monic)
     (hdeg : g.natDegree = 3) :
     g = X ^ 3 + C (g.coeff 2) * X ^ 2 + C (g.coeff 1) * X + C (g.coeff 0) := by
   rw [hg.as_sum, hdeg]
-  norm_num [Finset.sum_range_succ]
-  ring
+  norm_num [Finset.sum_range_succ] <;> ring
 
 theorem q5_irreducible : Irreducible q5 := by
   rw [q5_monic.irreducible_iff_lt_natDegree_lt q5_ne_one]
