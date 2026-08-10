@@ -19,7 +19,6 @@ def pPoly : Polynomial ℝ :=
 
 lemma P_eq_eval (s : ℝ) : P s = pPoly.eval s := by
   simp [P, pPoly]
-  ring
 
 lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
   have hfun : P = fun x => pPoly.eval x := by
@@ -28,6 +27,7 @@ lemma deriv_P (s : ℝ) : deriv P s = Pder s := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [pPoly, Pder]
+  ring
 
 
 def Q (x : ℝ) : ℝ :=
@@ -44,7 +44,6 @@ def qPoly : Polynomial ℝ :=
 
 lemma Q_eq_eval (x : ℝ) : Q x = qPoly.eval x := by
   simp [Q, qPoly]
-  ring
 
 lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
   have hfun : Q = fun y => qPoly.eval y := by
@@ -53,6 +52,7 @@ lemma deriv_Q (x : ℝ) : deriv Q x = Qder x := by
   rw [hfun]
   rw [Polynomial.deriv]
   simp [qPoly, Qder]
+  ring
 
 end
 end DerivativeScratch
