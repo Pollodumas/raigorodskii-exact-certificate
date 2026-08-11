@@ -1,0 +1,73 @@
+name: Verify publication package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install exact-verification dependency
+        run: python -m pip install -r verification/requirements_raigorodskii_v0_8.txt
+
+      - name: Run exact verifiers
+        run: |
+          python verification/verify_raigorodskii_certificate_v0_8.py
+          python verification/verify_raigorodskii_certificate_stdlib_v0_8.py
+
+      - name: Install Lean
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Lean core
+        run: |
+          lake update
+          lake exe cache get
+          if grep -RInE '^[[:space:]]*(sorry|admit)\b|^[[:space:]]*(axiom|opaque|unsafe)\b' lean; then
+            exit 1
+          fi
+          lake build
+
+      - name: Compile manuscript
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-extra texlive-fonts-recommended lmodern poppler-utils
+          cd paper
+          latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_8.tex
+          test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_8.pdf | awk '/^Pages:/ {print $2}')" = "7"
+          if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_8.log; then
+            exit 1
+          fi
+
+      - name: Verify published checksums
+        run: |
+          sha256sum -c SHA256SUMS
+          cd dist
+          sha256sum -c SHA256SUMS
+
+      - name: Enforce clean public tree
+        run: |
+          test "$(git ls-remote --heads origin | wc -l)" -eq 1
+          test ! -d publication-assets
+          test ! -e PUBLISHING.md
+          test ! -e RELEASE_NOTES_v0.8.md
+          test ! -e paper/README.md
+          test ! -e paper/CHANGELOG_v0_8.md
+          test ! -e docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md
+          if grep -RInE 'Ingo|Althöfer|Althoefer' --include='*.md' --include='*.tex' --include='*.lean' --include='*.py' .; then
+            exit 1
+          fi
