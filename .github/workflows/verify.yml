@@ -23,6 +23,12 @@ jobs:
       - name: Install exact-verification dependency
         run: python -m pip install -r verification/requirements_raigorodskii_v0_8.txt
 
+      - name: Verify published checksums before rebuilding
+        run: |
+          sha256sum -c SHA256SUMS
+          cd dist
+          sha256sum -c SHA256SUMS
+
       - name: Run exact verifiers
         run: |
           python verification/verify_raigorodskii_certificate_v0_8.py
@@ -42,22 +48,18 @@ jobs:
           fi
           lake build
 
-      - name: Compile manuscript
+      - name: Compile manuscript in an isolated directory
         run: |
           sudo apt-get update
           sudo apt-get install -y latexmk texlive-latex-base texlive-latex-extra texlive-fonts-recommended lmodern poppler-utils
-          cd paper
+          build_dir="$(mktemp -d)"
+          cp paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex "$build_dir/"
+          cd "$build_dir"
           latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_8.tex
           test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_8.pdf | awk '/^Pages:/ {print $2}')" = "7"
           if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_8.log; then
             exit 1
           fi
-
-      - name: Verify published checksums
-        run: |
-          sha256sum -c SHA256SUMS
-          cd dist
-          sha256sum -c SHA256SUMS
 
       - name: Enforce clean public tree
         run: |
