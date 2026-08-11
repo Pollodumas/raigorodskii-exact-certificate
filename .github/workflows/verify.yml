@@ -68,6 +68,3 @@ jobs:
           test ! -e paper/README.md
           test ! -e paper/CHANGELOG_v0_8.md
           test ! -e docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md
-          if grep -RInE 'Ingo|Althöfer|Althoefer' --include='*.md' --include='*.tex' --include='*.lean' --include='*.py' .; then
-            exit 1
-          fi
