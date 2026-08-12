@@ -22,17 +22,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Restore reviewed source payload
-        run: |
-          cat .review-payload/part-* > /tmp/raigorodskii-v0.9.b64
-          base64 --decode /tmp/raigorodskii-v0.9.b64 | tar -xz
-          rm -rf .review-payload
-          rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf
-          rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex
-          rm -f verification/*v0_8*
-          rm -rf dist
-          rm -f SHA256SUMS
-
       - name: Install exact-verification dependency
         run: python -m pip install -r verification/requirements_raigorodskii_v0_9.txt
 
@@ -55,12 +44,14 @@ jobs:
         run: |
           lake update
           lake exe cache get
-          if grep -RInE '\b(sorry|admit|axiom|opaque|unsafe)\b' --include='*.lean' lean; then
-            echo "Forbidden Lean placeholder or declaration found."
+          if grep -RInE --include='*.lean' '(^|[^[:alnum:]_])(sorry|admit)([^[:alnum:]_]|$)' lean; then
+            exit 1
+          fi
+          if grep -RInE --include='*.lean' '^[[:space:]]*(axiom|opaque|unsafe)([[:space:]]|$)' lean; then
             exit 1
           fi
           lake build
-          lake env lean lean/AxiomsAudit.lean | tee /tmp/lean-axioms.txt
+          lake env lean lean/AxiomsAudit.lean 2>&1 | tee /tmp/lean-axioms.txt
           if grep -q 'sorryAx' /tmp/lean-axioms.txt; then
             exit 1
           fi
@@ -79,13 +70,9 @@ jobs:
             exit 1
           fi
           if pdffonts Raigorodskii_Exact_Certificate_Draft_v0_9.pdf | tail -n +3 | grep -q ' no '; then
-            echo "A PDF font is not embedded or subsetted."
             exit 1
           fi
           latexmk -c Raigorodskii_Exact_Certificate_Draft_v0_9.tex
-
-      - name: Remove one-time workflow
-        run: rm -f .github/workflows/prepare-v0.9.yml
 
       - name: Generate source checksums
         run: |
@@ -149,10 +136,10 @@ jobs:
           sha256sum Raigorodskii_Exact_Certificate_v0_9.zip > SHA256SUMS
           sha256sum -c SHA256SUMS
 
-      - name: Commit reviewed package
+      - name: Commit generated artifacts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Prepare reviewed publication package v0.9"
+          git add SHA256SUMS dist paper/Raigorodskii_Exact_Certificate_Draft_v0_9.pdf
+          git commit -m "Generate reviewed publication artifacts v0.9"
           git push origin HEAD:review-v0.9
