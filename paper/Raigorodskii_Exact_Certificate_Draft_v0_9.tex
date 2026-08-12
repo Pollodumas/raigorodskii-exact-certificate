@@ -1,0 +1,408 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+
+\geometry{margin=1in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\gR}{\gamma_{\mathrm R}}
+
+\title{An Exact Algebraic Certificate for the\\Raigorodskii Lower-Bound Constant}
+\author{Joaqu\'in Paz Marchese\\[2pt]\small Independent researcher}
+\date{Draft v0.9, 12 August 2026}
+
+\hypersetup{
+  pdftitle={An Exact Algebraic Certificate for the Raigorodskii Lower-Bound Constant},
+  pdfauthor={Joaquin Paz Marchese},
+  pdfsubject={Exact algebraic certification of the lower-bound constant in Raigorodskii's estimate for the chromatic number of Euclidean space},
+  pdfkeywords={Euclidean chromatic number, Raigorodskii, algebraic number, resultant, root isolation}
+}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\small\color{gray}
+Not peer reviewed. Mathematical correctness, bibliographic priority, and attribution remain subject to independent expert review.
+\end{center}
+
+\begin{abstract}
+Raigorodskii's asymptotic lower bound for the chromatic number of high-dimensional Euclidean space involves the numerical base
+\(1.2395667407\ldots\). Starting from N\"aslund's one-variable reformulation of this base, we give a finite exact-arithmetic certificate. We prove that the relevant rational function has a unique maximizer \(s_*\in(0,1)\), eliminate \(s_*\), and obtain the primitive irreducible integral polynomial
+\[
+144x^6-528x^5+648x^4-220x^3-71x^2+42x-31.
+\]
+Consequently the constant is algebraic of degree six. It is the unique real root of this polynomial greater than \(1.2\), and exact rational sign evaluations give a certified enclosure of width \(10^{-40}\). An elementary Bernstein-basis certificate, independently cross-checked by a Sturm computation, proves that the sextic has exactly two real roots. We also prove that its Galois group is \(S_6\), so it is not expressible by radicals, and that \(6\gamma_{\mathrm R}\) is an algebraic integer with minimal positive integral scaling factor \(6\). This note does not improve the chromatic lower bound; it makes its numerical base algebraically explicit and independently reproducible.
+\end{abstract}
+
+\section{Introduction and source of the optimization}
+Let \(\chi(\mathbb R^n)\) denote the chromatic number of the unit-distance graph on \(\mathbb R^n\). Raigorodskii proved
+\[
+\chi(\mathbb R^n)\geq (\gR+o(1))^n,
+\]
+where \(\gR=1.23956674\ldots\) is the best known asymptotic lower-bound base for this problem \cite{Raigorodskii2000,GorskayaEtAl2009,Naslund2023,Erdos704}. Here \(\gR\) denotes the base in that lower bound, not the unknown asymptotic growth rate of \(\chi(\mathbb R^n)\).
+
+The existence of
+\[
+\lim_{n\to\infty}\chi(\mathbb R^n)^{1/n}
+\]
+is asked in Erd\H{o}s Problem~704 \cite{Erdos704}. The present note does not address the existence or value of that limit. It certifies exactly the known lower-bound base on one side of the current exponential corridor.
+
+N\"aslund's Theorem~3 gives, for \(m=k=1\) and \(\ell=3\),
+\[
+\max_{0<t<1}\frac{\theta(t^{1/2};3)}{1+t+t^2}
+=\max_{0<t<1}\frac{1+\sqrt t+t^{3/2}}{1+t+t^2}.
+\]
+After setting \(s=\sqrt t\), define
+\begin{equation}\label{eq:Fdef}
+\gamma_*=\max_{0<s<1}F(s),
+\qquad
+F(s)=\frac{1+s+s^3}{1+s^2+s^4}.
+\end{equation}
+N\"aslund explicitly states that, when \(k=m=1\), the maximizing choice \(\ell=3\) retrieves Raigorodskii's lower bound. The identification of \(\gamma_*\) with the Raigorodskii lower-bound base is therefore inherited from N\"aslund; throughout the rest of the note we write \(\gR=\gamma_*\). The present work certifies the exact algebraic value of this specific optimum from Theorem~3. This is the sole external mathematical input to the certificate below.
+
+\begin{remark}[The display in arXiv v2]
+In \S1.3 of arXiv:2205.12312v2, the explanatory display prints the reciprocal quotient. This cannot have the stated value: for \(0<s<1\),
+\[
+F(s)-1=\frac{s(1-s)(1+s^2)}{1+s^2+s^4}>0,
+\]
+so the printed reciprocal is strictly less than one. Theorem~3 gives the orientation in \eqref{eq:Fdef}. This remark concerns the arXiv v2 display; the present draft has not verified whether the typeset journal version retained or corrected it.
+\end{remark}
+
+\section{Exact algebraic certificate}
+Define
+\begin{align}
+P(s)&=1-2s+2s^2-4s^3-2s^4-s^6,\label{eq:Pdef}\\
+Q(x)&=144x^6-528x^5+648x^4-220x^3-71x^2+42x-31.\label{eq:Qdef}
+\end{align}
+
+\begin{theorem}\label{thm:main}
+Let \(\gR\) be defined by \eqref{eq:Fdef}. Then:
+\begin{enumerate}[label=(\roman*)]
+\item \(F\) has a unique maximizer \(s_*\in(0,1)\), and \(s_*\) is the unique root of \(P\) in \((0,1)\).
+\item \(Q(\gR)=0\). The polynomial \(Q\) is primitive and irreducible over \(\mathbb Q\). Thus \(\gR\) has degree six over \(\mathbb Q\); its monic minimal polynomial is \(Q/144\), and \(Q\) is its primitive irreducible integral associate.
+\item \(Q\) is strictly increasing on \([6/5,\infty)\), with
+\[
+Q\!\left(\frac65\right)=-\frac{49351}{15625}<0,
+\qquad
+Q\!\left(\frac{13}{10}\right)=\frac{88379}{15625}>0.
+\]
+Consequently \(\gR\) is the unique real root of \(Q\) greater than \(1.2\).
+\item The exact enclosure
+\begin{center}
+\small
+$\begin{aligned}
+1.2395667407265985397097751707397283370137&<\gR,\\
+\gR&<1.2395667407265985397097751707397283370138
+\end{aligned}$
+\end{center}
+holds. Its width is \(10^{-40}\).
+\item The polynomial \(Q\) has exactly two real roots: one in \((-0.467,-0.466)\) and the positive root \(\gR\) in \((1.2,1.3)\).
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Write
+\[
+N(s)=1+s+s^3,
+\qquad
+D(s)=1+s^2+s^4.
+\]
+Direct differentiation gives
+\begin{equation}\label{eq:derivative}
+F'(s)=\frac{N'(s)D(s)-N(s)D'(s)}{D(s)^2}
+=\frac{P(s)}{(1+s^2+s^4)^2}.
+\end{equation}
+Moreover,
+\[
+-P'(s)=6s^5+8s^3+12s^2-4s+2.
+\]
+For \(s>0\), the first two terms are nonnegative, while \(12s^2-4s+2>0\) because its discriminant is \(-80\). Hence \(P'(s)<0\) on \((0,\infty)\). Since \(P(0)=1\) and \(P(1)=-6\), the polynomial \(P\) has exactly one root \(s_*\in(0,1)\). Equation \eqref{eq:derivative} then shows that \(F\) increases before \(s_*\) and decreases after it. This proves (i).
+
+To eliminate \(s\), impose
+\[
+P(s)=0,
+\qquad
+xD(s)-N(s)=0.
+\]
+An exact Sylvester resultant calculation gives
+\begin{equation}\label{eq:resultant}
+\operatorname{Res}_s\!\left(P(s),x(1+s^2+s^4)-(1+s+s^3)\right)=3Q(x).
+\end{equation}
+At \(x=F(s_*)=\gR\), the value \(s=s_*\) is a common zero of the two polynomials in \(s\). Their resultant therefore vanishes, and \eqref{eq:resultant} gives \(Q(\gR)=0\).
+
+The coefficients of \(Q\) have greatest common divisor one, so \(Q\) is primitive. Modulo \(5\), multiplication by the unit \(-1\) produces the monic polynomial
+\[
+\overline Q(x)=x^6-2x^5+2x^4+x^2-2x+1\in\mathbb F_5[x].
+\]
+Exact finite-field arithmetic gives
+\begin{align*}
+\gcd\!\left(\overline Q,x^{5^2}-x\right)&=1,\\
+\gcd\!\left(\overline Q,x^{5^3}-x\right)&=1,\\
+x^{5^6}-x&\equiv0\pmod{\overline Q}.
+\end{align*}
+These are Rabin's degree-six irreducibility conditions \cite{Rabin1980}. Thus \(\overline Q\) is irreducible over \(\mathbb F_5\), and Gauss's lemma implies that \(Q\) is irreducible over \(\mathbb Q\). This proves (ii).
+
+For uniqueness of the relevant real root, put \(x=6/5+y\). Exact expansion gives
+\[
+\begin{aligned}
+Q'\!\left(\frac65+y\right)={}&864y^5+2544y^4+\frac{11808}{5}y^3
++\frac{19788}{25}y^2\\
+&+\frac{22714}{125}y+\frac{236814}{3125}.
+\end{aligned}
+\]
+Every coefficient is positive, so \(Q\) is strictly increasing on \([6/5,\infty)\). The displayed exact endpoint values show that \(Q\) has one root in \((6/5,13/10)\). Since
+\[
+\gR\geq F\!\left(\frac12\right)=\frac{26}{21}>\frac65,
+\]
+that root is \(\gR\), proving (iii).
+
+For (iv), let
+\begin{align*}
+L&=\frac{12395667407265985397097751707397283370137}{10^{40}},\\
+U&=\frac{12395667407265985397097751707397283370138}{10^{40}}.
+\end{align*}
+Exact integer arithmetic gives \(Q(L)<0<Q(U)\). Strict monotonicity on \([6/5,\infty)\) places the unique positive root in \((L,U)\).
+
+Part~(v) follows from the elementary positivity certificate in Proposition~\ref{prop:two-roots} below. The verification programs also compute an independent exact Sturm sequence with the same root count.
+\end{proof}
+
+
+\begin{proposition}[Elementary certificate for the two real roots]\label{prop:two-roots}
+The polynomial \(Q\) has exactly one root in
+\( (-467/1000,-466/1000) \), exactly one root in \( (6/5,13/10) \), and no other real roots.
+\end{proposition}
+
+\begin{proof}
+For \(0\le t\le1\), write
+\[
+B_{i,n}(t)=\binom ni t^i(1-t)^{n-i}.
+\]
+Every \(B_{i,n}\) is nonnegative on \([0,1]\), and
+\(\sum_{i=0}^nB_{i,n}(t)=1\).
+
+First, for \(y\ge0\), exact expansion gives
+\[
+\begin{aligned}
+Q\!\left(-\frac{467}{1000}-y\right)={}&144y^6+\frac{116436}{125}y^5
++\frac{29399403}{12500}y^4+\frac{8985296567}{3125000}y^3\\
+&+\frac{21570510479867}{12500000000}y^2
++\frac{13886577206994389}{31250000000000}y
++\frac{21899765866381721}{62500000000000000}.
+\end{aligned}
+\]
+All coefficients are positive, so \(Q(x)>0\) for \(x\le-467/1000\).
+
+Next set
+\[
+x=-\frac{466}{1000}+\frac{833}{500}t,
+\]
+which maps \([0,1]\) onto \([-466/1000,6/5]\). Exact conversion to the degree-eight Bernstein basis gives
+\[
+-Q(x)=\sum_{i=0}^8 b_iB_{i,8}(t),
+\]
+where
+\[
+\begin{aligned}
+(b_0,\ldots,b_8)=\bigg(&
+\frac{90089305534379}{976562500000000},
+\frac{359044792692858729}{3906250000000000},
+\frac{52870090497122397}{3906250000000000},\\
+&\frac{124620702915641}{78125000000000},
+\frac{13443213954293}{390625000000},
+\frac{282934224509}{6250000000},\\
+&\frac{3214343901}{125000000},
+\frac{118373431}{6250000},
+\frac{49351}{15625}\bigg).
+\end{aligned}
+\]
+Every \(b_i\) is positive. Hence \(Q(x)<0\) throughout \([-466/1000,6/5]\).
+
+On the remaining interval put
+\[
+x=-\frac{467}{1000}+\frac{t}{1000}.
+\]
+A degree-five Bernstein expansion gives
+\[
+-Q'(x)=\sum_{i=0}^5 c_iB_{i,5}(t),
+\]
+with
+\[
+\begin{aligned}
+(c_0,\ldots,c_5)=\bigg(&
+\frac{13886577206994389}{31250000000000},
+\frac{6932503348257261}{15625000000000},
+\frac{3460865785481089}{7812500000000},\\
+&\frac{1727743314228061}{3906250000000},
+\frac{862528548927789}{1953125000000},
+\frac{430593559988861}{976562500000}\bigg).
+\end{aligned}
+\]
+Thus \(-Q'(x)>0\), so \(Q\) is strictly decreasing on
+\([-467/1000,-466/1000]\). Since
+\[
+Q\!\left(-\frac{467}{1000}\right)
+=\frac{21899765866381721}{62500000000000000}>0,
+\qquad
+Q\!\left(-\frac{466}{1000}\right)
+=-\frac{90089305534379}{976562500000000}<0,
+\]
+continuity gives exactly one root in that interval. Part~(iii) gives exactly one root in \((6/5,13/10)\) and none on \([13/10,\infty)\). Together with the sign certificates on
+\(( -\infty,-467/1000]\) and \([-466/1000,6/5]\), these intervals cover \(\mathbb R\) and prove the claim.
+\end{proof}
+
+\begin{corollary}[Galois group, radicals, and integral scaling]\label{cor:galois}
+The Galois group of \(Q\) over \(\mathbb Q\) is the full symmetric group \(S_6\). Consequently \(\gR\) is not expressible by radicals. Moreover, \(\gR\) is not an algebraic integer, while \(6\gR\) is an algebraic integer; the integer \(6\) is the least positive integer \(d\) for which \(d\gR\) is an algebraic integer.
+\end{corollary}
+
+\begin{proof}
+Set
+\[
+R(y)=6^6\,\frac{Q(y/6)}{144}
+=y^6-22y^5+162y^4-330y^3-639y^2+2268y-10044.
+\]
+The polynomial \(R\in\mathbb Z[y]\) is monic and irreducible, and \(R(6\gR)=0\). Its discriminant is
+\[
+\operatorname{disc}(R)=2^{17}3^{13}47^3 421^3.
+\]
+For each \(p\in\{61,107\}\), one has \(p\nmid\operatorname{disc}(R)\), which is the hypothesis of Dedekind's factorization theorem in the form used here. Moreover, \(p\nmid6\cdot144\cdot324\): in particular,
+\[
+144\equiv22\pmod{61},\qquad 144\equiv37\pmod{107}
+\]
+are units, so \(Q\bmod p\) retains degree six and no factor is lost on reduction. Since
+\[
+R(6x)=324Q(x),
+\]
+the invertible substitution \(y=6x\), followed by multiplication by the unit \(324\), preserves the factor-degree pattern. Exact factorizations give
+\[
+Q(x)\equiv 22(x-9)
+\bigl(x^5-15x^4+22x^3+5x^2-22x-2\bigr)\pmod {61},
+\]
+where the quintic factor is irreducible over \(\mathbb F_{61}\), and
+\[
+\begin{aligned}
+Q(x)\equiv{}&37(x-16)(x-11)(x+25)(x+33)\\
+&\qquad\cdot(x^2+x-50)\pmod {107},
+\end{aligned}
+\]
+where the quadratic factor is irreducible over \(\mathbb F_{107}\). By Dedekind's factorization theorem, equivalently the standard factorization--cycle correspondence at primes not dividing \(\operatorname{disc}(R)\) \cite{Cox2012}, the Galois group contains a 5-cycle and a transposition. Although irreducibility modulo \(5\) already supplies a 6-cycle, a 6-cycle together with an unspecified transposition does not uniformly force \(S_6\); the 5-cycle is used so that the transitivity argument below is independent of which transposition occurs.
+
+Irreducibility makes the Galois group transitive. The stabilizer of the point fixed by the 5-cycle acts transitively on the remaining five points, so the full action is 2-transitive. Conjugating the transposition then produces every transposition, and the group is \(S_6\). Since \(S_6\) is not solvable, \(\gR\) cannot be expressed by radicals.
+
+The monic minimal polynomial of \(\gR\) is \(Q/144\), which is not in \(\mathbb Z[x]\); hence \(\gR\) is not an algebraic integer. The displayed monic polynomial \(R\) proves that \(6\gR\) is an algebraic integer.
+
+Finally, for a positive integer \(d\), the monic minimal polynomial of \(d\gR\) is
+\[
+M_d(y)=d^6\,\frac{Q(y/d)}{144}.
+\]
+If \(d\gR\) is an algebraic integer, then \(M_d\in\mathbb Z[y]\). Its coefficients of \(y^5\) and \(y^4\) are respectively
+\[
+-\frac{11d}{3},\qquad \frac{9d^2}{2}.
+\]
+Therefore \(3\mid d\) and \(2\mid d\), so \(6\mid d\). Since \(d=6\) works, the least such positive integer is exactly \(6\).
+\end{proof}
+
+\begin{remark}[Minimal certificate primes]
+Among primes not dividing \(\operatorname{disc}(R)\), an exact finite scan shows that \(61\) is the least prime for which \(R\bmod p\) has factor degrees \([1,5]\), and \(107\) is the least prime for which it has factor degrees \([1,1,1,1,2]\). This minimality is not needed for the proof, but explains the choice of the two Dedekind primes.
+\end{remark}
+
+\section{Isolation of the maximizer}
+The maximizer can also be isolated exactly. Put
+\[
+s_1=\frac{464087083432496056}{10^{18}},
+\qquad
+s_2=\frac{464087083432496057}{10^{18}}.
+\]
+Exact evaluation gives
+\[
+P(s_1)>0>P(s_2).
+\]
+Because \(P\) is strictly decreasing,
+\[
+0.464087083432496056<s_*<0.464087083432496057.
+\]
+This is an independent rational certificate for the optimizer used in the elimination step.
+
+\section{Reproducibility and independent exact checks}
+The accompanying package contains two verification programs.
+
+The first uses SymPy 1.14.0 as an exact-arithmetic engine. It checks the derivative identity and its positivity decomposition, the resultant, a lexicographic Gr\"obner elimination, the minimal polynomial of the exact optimizer value, the primitive content, the Rabin certificate over \(\mathbb F_5\), both exact real-root certificates, the endpoint brackets, and the modular factorizations used in Corollary~\ref{cor:galois} \cite{SymPy2017}.
+
+The second uses only Python's standard library. It derives the finite-field reduction from \(Q\), implements polynomial arithmetic over finite fields, computes the full Sylvester resultant symbolically by fraction-free Bareiss elimination over \(\mathbb Z[x]\), constructs rational Sturm sequences, verifies independently the Bernstein-basis certificate of Proposition~\ref{prop:two-roots}, derives \(R\) and its discriminant from \(Q\), and checks the endpoint, integral-scaling, Dedekind, and Galois-factorization certificates. Both programs also verify that \(61\) and \(107\) are the least unramified primes with the required factor patterns.
+
+All load-bearing Python checks use explicit exceptions rather than the \texttt{assert} statement, so they remain active under \texttt{python -O}. A directed mutation harness corrupts coefficients, enclosures, Bernstein data, and cycle-prime claims and requires every corruption to be detected in normal execution, with representative corruptions repeated under optimized execution.
+
+A Lean 4 companion, pinned to Lean and Mathlib version 4.32.1, kernel-checks the analytic and real-algebraic core and the integrality of \(6\gR\). It contains no placeholder proofs or added axioms. The continuous-integration workflow scans all Lean source tokens for placeholders and records \texttt{\#print axioms} output for the principal theorems. Irreducibility, the global root count, minimality of the scaling factor, and the Galois argument are not claimed as fully formalized in Lean.
+
+No floating-point computation is used in any logical step.
+
+\section{Scope and bibliographic status}
+This note is an exact evaluation of a known lower-bound constant. It neither improves the asymptotic lower bound for \(\chi(\mathbb R^n)\) nor resolves Erd\H{o}s Problem~704.
+
+To the best of our knowledge, this explicit minimal polynomial and exact root isolation have not previously appeared in the literature. Searches included the exact decimal expansion, both coefficient tuples, OEIS, accessible primary texts and bibliographic records for the cited lower-bound papers, and the public Erd\H{o}s-problems record. No prior appearance was found. The search was not comprehensive: in particular, MathSciNet, zbMATH, some paywalled full texts, and Russian-language literature beyond accessible records were not exhaustively searched. No unconditional claim of bibliographic priority is made pending broader specialist review.
+
+\section*{Research provenance and AI-assistance disclosure}
+This note arose from a multi-model research workflow designed and coordinated by the author, combining ChatGPT, Claude, Gemini, primary mathematical sources, exact symbolic computation, and repeated adversarial checking. The algebraic derivation and initial manuscript were principally generated by AI systems. The author selected and directed the investigation, compared model outputs, consolidated the surviving derivations, and arranged the exact verification and external review. No AI system is listed as an author. This draft is being circulated specifically for independent human assessment of correctness, relevance, priority, and attribution.
+
+\begin{thebibliography}{9}
+
+\bibitem{Raigorodskii2000}
+A.~M. Raigorodskii,
+\newblock On the chromatic number of a space,
+\newblock \emph{Russian Mathematical Surveys} \textbf{55} (2000), no.~2, 351--352.
+\newblock \href{https://doi.org/10.1070/RM2000v055n02ABEH000281}{doi:10.1070/RM2000v055n02ABEH000281}.
+
+\bibitem{GorskayaEtAl2009}
+E.~S. Gorskaya, I.~M. Mitricheva (Shitova), V.~Yu. Protasov, and A.~M. Raigorodskii,
+\newblock Estimating the chromatic numbers of Euclidean space by convex minimization methods,
+\newblock \emph{Sbornik: Mathematics} \textbf{200} (2009), no.~6, 783--801.
+\newblock \href{https://doi.org/10.1070/SM2009v200n06ABEH004019}{doi:10.1070/SM2009v200n06ABEH004019}.
+
+\bibitem{Naslund2023}
+E.~N\"aslund,
+\newblock The chromatic number of \(\mathbb R^n\) with multiple forbidden distances,
+\newblock \emph{Mathematika} \textbf{69} (2023), no.~3, 692--718.
+\newblock \href{https://doi.org/10.1112/mtk.12197}{doi:10.1112/mtk.12197}; \href{https://arxiv.org/abs/2205.12312}{arXiv:2205.12312v2}.
+
+\bibitem{Erdos704}
+T.~F. Bloom (ed.),
+\newblock Erd\H{o}s Problem \#704,
+\newblock \emph{Erd\H{o}s Problems},
+\newblock \href{https://www.erdosproblems.com/704}{erdosproblems.com/704}, accessed 12 August 2026.
+
+\bibitem{Rabin1980}
+M.~O. Rabin,
+\newblock Probabilistic algorithms in finite fields,
+\newblock \emph{SIAM Journal on Computing} \textbf{9} (1980), no.~2, 273--280.
+\newblock \href{https://doi.org/10.1137/0209024}{doi:10.1137/0209024}.
+
+\bibitem{Cox2012}
+D.~A. Cox,
+\newblock \emph{Galois Theory}, second ed.,
+\newblock Wiley, Hoboken, NJ, 2012.
+
+\bibitem{SymPy2017}
+A.~Meurer et al.,
+\newblock SymPy: symbolic computing in Python,
+\newblock \emph{PeerJ Computer Science} \textbf{3} (2017), e103.
+\newblock \href{https://doi.org/10.7717/peerj-cs.103}{doi:10.7717/peerj-cs.103}.
+
+\end{thebibliography}
+
+\end{document}
