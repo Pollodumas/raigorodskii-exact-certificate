@@ -20,6 +20,7 @@ jobs:
 
       - name: Restore verified source tree
         run: |
+          cp .github/workflows/verify.yml /tmp/verify.yml
           cat \
             .review-payload/part-00 \
             .review-payload/part-01-00 \
@@ -45,21 +46,20 @@ jobs:
           base64 --decode /tmp/raigorodskii-v0.9.b64 > /tmp/raigorodskii-v0.9.tar.gz
           echo "9f583713d068a3cd48001b884449fa9763f450c7de555868ff0f6f2025262a99  /tmp/raigorodskii-v0.9.tar.gz" | sha256sum -c -
           tar -xzf /tmp/raigorodskii-v0.9.tar.gz
+          cp /tmp/verify.yml .github/workflows/verify.yml
 
       - name: Remove transfer and superseded files
         run: |
           rm -rf .review-payload
-          rm -f .github/workflows/apply-v0.9.yml
-          rm -f .github/workflows/prepare-v0.9.yml
           rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf
           rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex
           rm -f verification/*v0_8*
           rm -f dist/Raigorodskii_Exact_Certificate_v0_8.zip
 
-      - name: Commit reviewed v0.9 tree
+      - name: Commit reviewed v0.9 sources
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Prepare reviewed publication package v0.9"
+          git add -A -- ':!.github/workflows'
+          git commit -m "Prepare reviewed publication sources v0.9"
           git push origin HEAD:review-v0.9
