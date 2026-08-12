@@ -17,6 +17,7 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
@@ -24,7 +25,7 @@
 
 \title{An Exact Algebraic Certificate for the\\Raigorodskii Lower-Bound Constant}
 \author{Joaqu\'in Paz Marchese\\[2pt]\small Independent researcher}
-\date{Draft v0.8, 28 July 2026}
+\date{Draft v0.9, 12 August 2026}
 
 \hypersetup{
   pdftitle={An Exact Algebraic Certificate for the Raigorodskii Lower-Bound Constant},
@@ -47,7 +48,7 @@ Raigorodskii's asymptotic lower bound for the chromatic number of high-dimension
 \[
 144x^6-528x^5+648x^4-220x^3-71x^2+42x-31.
 \]
-Consequently the constant is algebraic of degree six. It is the unique real root of this polynomial greater than \(1.2\), and exact rational sign evaluations give a certified enclosure of width \(10^{-40}\). We also prove that its Galois group is \(S_6\), so it is not expressible by radicals, and that \(6\gamma_{\mathrm R}\) is an algebraic integer with minimal positive integral scaling factor \(6\). This note does not improve the chromatic lower bound; it makes its numerical base algebraically explicit and independently reproducible.
+Consequently the constant is algebraic of degree six. It is the unique real root of this polynomial greater than \(1.2\), and exact rational sign evaluations give a certified enclosure of width \(10^{-40}\). An elementary Bernstein-basis certificate, independently cross-checked by a Sturm computation, proves that the sextic has exactly two real roots. We also prove that its Galois group is \(S_6\), so it is not expressible by radicals, and that \(6\gamma_{\mathrm R}\) is an algebraic integer with minimal positive integral scaling factor \(6\). This note does not improve the chromatic lower bound; it makes its numerical base algebraically explicit and independently reproducible.
 \end{abstract}
 
 \section{Introduction and source of the optimization}
@@ -179,13 +180,91 @@ U&=\frac{12395667407265985397097751707397283370138}{10^{40}}.
 \end{align*}
 Exact integer arithmetic gives \(Q(L)<0<Q(U)\). Strict monotonicity on \([6/5,\infty)\) places the unique positive root in \((L,U)\).
 
-Finally, an exact Sturm sequence gives one real root in each of
+Part~(v) follows from the elementary positivity certificate in Proposition~\ref{prop:two-roots} below. The verification programs also compute an independent exact Sturm sequence with the same root count.
+\end{proof}
+
+
+\begin{proposition}[Elementary certificate for the two real roots]\label{prop:two-roots}
+The polynomial \(Q\) has exactly one root in
+\( (-467/1000,-466/1000) \), exactly one root in \( (6/5,13/10) \), and no other real roots.
+\end{proposition}
+
+\begin{proof}
+For \(0\le t\le1\), write
 \[
-\left(-\frac{467}{1000},-\frac{466}{1000}\right)
-\quad\text{and}\quad
-\left(\frac65,\frac{13}{10}\right),
+B_{i,n}(t)=\binom ni t^i(1-t)^{n-i}.
 \]
-and no other real roots. This proves (v).
+Every \(B_{i,n}\) is nonnegative on \([0,1]\), and
+\(\sum_{i=0}^nB_{i,n}(t)=1\).
+
+First, for \(y\ge0\), exact expansion gives
+\[
+\begin{aligned}
+Q\!\left(-\frac{467}{1000}-y\right)={}&144y^6+\frac{116436}{125}y^5
++\frac{29399403}{12500}y^4+\frac{8985296567}{3125000}y^3\\
+&+\frac{21570510479867}{12500000000}y^2
++\frac{13886577206994389}{31250000000000}y
++\frac{21899765866381721}{62500000000000000}.
+\end{aligned}
+\]
+All coefficients are positive, so \(Q(x)>0\) for \(x\le-467/1000\).
+
+Next set
+\[
+x=-\frac{466}{1000}+\frac{833}{500}t,
+\]
+which maps \([0,1]\) onto \([-466/1000,6/5]\). Exact conversion to the degree-eight Bernstein basis gives
+\[
+-Q(x)=\sum_{i=0}^8 b_iB_{i,8}(t),
+\]
+where
+\[
+\begin{aligned}
+(b_0,\ldots,b_8)=\bigg(&
+\frac{90089305534379}{976562500000000},
+\frac{359044792692858729}{3906250000000000},
+\frac{52870090497122397}{3906250000000000},\\
+&\frac{124620702915641}{78125000000000},
+\frac{13443213954293}{390625000000},
+\frac{282934224509}{6250000000},\\
+&\frac{3214343901}{125000000},
+\frac{118373431}{6250000},
+\frac{49351}{15625}\bigg).
+\end{aligned}
+\]
+Every \(b_i\) is positive. Hence \(Q(x)<0\) throughout \([-466/1000,6/5]\).
+
+On the remaining interval put
+\[
+x=-\frac{467}{1000}+\frac{t}{1000}.
+\]
+A degree-five Bernstein expansion gives
+\[
+-Q'(x)=\sum_{i=0}^5 c_iB_{i,5}(t),
+\]
+with
+\[
+\begin{aligned}
+(c_0,\ldots,c_5)=\bigg(&
+\frac{13886577206994389}{31250000000000},
+\frac{6932503348257261}{15625000000000},
+\frac{3460865785481089}{7812500000000},\\
+&\frac{1727743314228061}{3906250000000},
+\frac{862528548927789}{1953125000000},
+\frac{430593559988861}{976562500000}\bigg).
+\end{aligned}
+\]
+Thus \(-Q'(x)>0\), so \(Q\) is strictly decreasing on
+\([-467/1000,-466/1000]\). Since
+\[
+Q\!\left(-\frac{467}{1000}\right)
+=\frac{21899765866381721}{62500000000000000}>0,
+\qquad
+Q\!\left(-\frac{466}{1000}\right)
+=-\frac{90089305534379}{976562500000000}<0,
+\]
+continuity gives exactly one root in that interval. Part~(iii) gives exactly one root in \((6/5,13/10)\) and none on \([13/10,\infty)\). Together with the sign certificates on
+\(( -\infty,-467/1000]\) and \([-466/1000,6/5]\), these intervals cover \(\mathbb R\) and prove the claim.
 \end{proof}
 
 \begin{corollary}[Galois group, radicals, and integral scaling]\label{cor:galois}
@@ -239,6 +318,10 @@ If \(d\gR\) is an algebraic integer, then \(M_d\in\mathbb Z[y]\). Its coefficien
 Therefore \(3\mid d\) and \(2\mid d\), so \(6\mid d\). Since \(d=6\) works, the least such positive integer is exactly \(6\).
 \end{proof}
 
+\begin{remark}[Minimal certificate primes]
+Among primes not dividing \(\operatorname{disc}(R)\), an exact finite scan shows that \(61\) is the least prime for which \(R\bmod p\) has factor degrees \([1,5]\), and \(107\) is the least prime for which it has factor degrees \([1,1,1,1,2]\). This minimality is not needed for the proof, but explains the choice of the two Dedekind primes.
+\end{remark}
+
 \section{Isolation of the maximizer}
 The maximizer can also be isolated exactly. Put
 \[
@@ -259,16 +342,20 @@ This is an independent rational certificate for the optimizer used in the elimin
 \section{Reproducibility and independent exact checks}
 The accompanying package contains two verification programs.
 
-The first uses SymPy 1.14.0 as an exact-arithmetic engine. It checks the derivative identity, the resultant, a lexicographic Gr\"obner elimination, the minimal polynomial of the exact optimizer value, the primitive content, the Rabin certificate over \(\mathbb F_5\), the shifted derivative, the exact endpoint signs, the optimizer bracket, the Sturm root counts, and the modular factorizations used in Corollary~\ref{cor:galois} \cite{SymPy2017}.
+The first uses SymPy 1.14.0 as an exact-arithmetic engine. It checks the derivative identity and its positivity decomposition, the resultant, a lexicographic Gr\"obner elimination, the minimal polynomial of the exact optimizer value, the primitive content, the Rabin certificate over \(\mathbb F_5\), both exact real-root certificates, the endpoint brackets, and the modular factorizations used in Corollary~\ref{cor:galois} \cite{SymPy2017}.
 
-The second uses only Python's standard library. It derives the finite-field reduction from \(Q\), implements polynomial arithmetic over finite fields, computes the full Sylvester resultant symbolically by fraction-free Bareiss elimination over \(\mathbb Z[x]\), constructs rational Sturm sequences, derives \(R\) and its discriminant from \(Q\), and verifies the endpoint, integral-scaling, Dedekind, and Galois-factorization certificates. Stated constants are retained only as exact assertions against independently computed quantities; the printed values come from those computations.
+The second uses only Python's standard library. It derives the finite-field reduction from \(Q\), implements polynomial arithmetic over finite fields, computes the full Sylvester resultant symbolically by fraction-free Bareiss elimination over \(\mathbb Z[x]\), constructs rational Sturm sequences, verifies independently the Bernstein-basis certificate of Proposition~\ref{prop:two-roots}, derives \(R\) and its discriminant from \(Q\), and checks the endpoint, integral-scaling, Dedekind, and Galois-factorization certificates. Both programs also verify that \(61\) and \(107\) are the least unramified primes with the required factor patterns.
 
-No floating-point computation is used in any logical step. High-precision numerical roots are included only as a diagnostic and are not part of the proof.
+All load-bearing Python checks use explicit exceptions rather than the \texttt{assert} statement, so they remain active under \texttt{python -O}. A directed mutation harness corrupts coefficients, enclosures, Bernstein data, and cycle-prime claims and requires every corruption to be detected in normal execution, with representative corruptions repeated under optimized execution.
+
+A Lean 4 companion, pinned to Lean and Mathlib version 4.32.1, kernel-checks the analytic and real-algebraic core and the integrality of \(6\gR\). It contains no placeholder proofs or added axioms. The continuous-integration workflow scans all Lean source tokens for placeholders and records \texttt{\#print axioms} output for the principal theorems. Irreducibility, the global root count, minimality of the scaling factor, and the Galois argument are not claimed as fully formalized in Lean.
+
+No floating-point computation is used in any logical step.
 
 \section{Scope and bibliographic status}
 This note is an exact evaluation of a known lower-bound constant. It neither improves the asymptotic lower bound for \(\chi(\mathbb R^n)\) nor resolves Erd\H{o}s Problem~704.
 
-To the best of our knowledge, this explicit minimal polynomial and exact root isolation have not previously appeared in the literature. The explicit sextic was not located in the full texts inspected for Raigorodskii's 2000 note, Gorskaya--Mitricheva--Protasov--Raigorodskii's 2009 paper, or N\"aslund's arXiv v2 manuscript. This is not a comprehensive priority search. No claim of novelty or bibliographic priority is made pending broader specialist review.
+To the best of our knowledge, this explicit minimal polynomial and exact root isolation have not previously appeared in the literature. Searches included the exact decimal expansion, both coefficient tuples, OEIS, accessible primary texts and bibliographic records for the cited lower-bound papers, and the public Erd\H{o}s-problems record. No prior appearance was found. The search was not comprehensive: in particular, MathSciNet, zbMATH, some paywalled full texts, and Russian-language literature beyond accessible records were not exhaustively searched. No unconditional claim of bibliographic priority is made pending broader specialist review.
 
 \section*{Research provenance and AI-assistance disclosure}
 This note arose from a multi-model research workflow designed and coordinated by the author, combining ChatGPT, Claude, Gemini, primary mathematical sources, exact symbolic computation, and repeated adversarial checking. The algebraic derivation and initial manuscript were principally generated by AI systems. The author selected and directed the investigation, compared model outputs, consolidated the surviving derivations, and arranged the exact verification and external review. No AI system is listed as an author. This draft is being circulated specifically for independent human assessment of correctness, relevance, priority, and attribution.
@@ -297,7 +384,7 @@ E.~N\"aslund,
 T.~F. Bloom (ed.),
 \newblock Erd\H{o}s Problem \#704,
 \newblock \emph{Erd\H{o}s Problems},
-\newblock \href{https://www.erdosproblems.com/704}{erdosproblems.com/704}, accessed 28 July 2026.
+\newblock \href{https://www.erdosproblems.com/704}{erdosproblems.com/704}, accessed 12 August 2026.
 
 \bibitem{Rabin1980}
 M.~O. Rabin,

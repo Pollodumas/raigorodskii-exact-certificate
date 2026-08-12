@@ -5,7 +5,7 @@ import Mathlib
 
 This file formalizes the elementary real-algebraic core of the certificate in
 J. Paz Marchese, "An Exact Algebraic Certificate for the Raigorodskii
-Lower-Bound Constant", draft v0.8 (28 July 2026).
+Lower-Bound Constant", draft v0.9 (12 August 2026).
 
 STATUS
 * This module compiles without placeholder proofs.
