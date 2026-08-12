@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install exact-verification dependency
-        run: python -m pip install -r verification/requirements_raigorodskii_v0_8.txt
+        run: python -m pip install -r verification/requirements_raigorodskii_v0_9.txt
 
       - name: Verify published checksums before rebuilding
         run: |
@@ -29,44 +29,75 @@ jobs:
           cd dist
           sha256sum -c SHA256SUMS
 
-      - name: Run exact verifiers
+      - name: Run exact verifiers in normal and optimized modes
         run: |
-          python verification/verify_raigorodskii_certificate_v0_8.py
-          python verification/verify_raigorodskii_certificate_stdlib_v0_8.py
+          python verification/verify_raigorodskii_certificate_v0_9.py | tee sympy-normal.log
+          python -O verification/verify_raigorodskii_certificate_v0_9.py | tee sympy-optimized.log
+          diff -u sympy-normal.log sympy-optimized.log
+          python verification/verify_raigorodskii_certificate_stdlib_v0_9.py | tee stdlib-normal.log
+          python -O verification/verify_raigorodskii_certificate_stdlib_v0_9.py | tee stdlib-optimized.log
+          diff -u stdlib-normal.log stdlib-optimized.log
+          python verification/mutation_test_harness_v0_9.py | tee mutation-tests.log
 
       - name: Install Lean
         run: |
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Verify Lean core
+      - name: Verify Lean core and audit axioms
         run: |
           lake update
           lake exe cache get
-          if grep -RInE '^[[:space:]]*(sorry|admit)\b|^[[:space:]]*(axiom|opaque|unsafe)\b' lean; then
+          if grep -RInE --include='*.lean' '(^|[^[:alnum:]_])(sorry|admit)([^[:alnum:]_]|$)' lean; then
+            echo "Lean source contains a placeholder proof."
+            exit 1
+          fi
+          if grep -RInE --include='*.lean' '^[[:space:]]*(axiom|opaque|unsafe)([[:space:]]|$)' lean; then
+            echo "Lean source contains a forbidden declaration."
             exit 1
           fi
           lake build
+          lake env lean lean/AxiomsAudit.lean 2>&1 | tee axioms.log
+          if grep -q 'sorryAx' axioms.log; then
+            echo "A principal theorem depends on sorryAx."
+            exit 1
+          fi
 
       - name: Compile manuscript in an isolated directory
         run: |
           sudo apt-get update
           sudo apt-get install -y latexmk texlive-latex-base texlive-latex-extra texlive-fonts-recommended lmodern poppler-utils
           build_dir="$(mktemp -d)"
-          cp paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex "$build_dir/"
+          cp paper/Raigorodskii_Exact_Certificate_Draft_v0_9.tex "$build_dir/"
           cd "$build_dir"
-          latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_8.tex
-          test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_8.pdf | awk '/^Pages:/ {print $2}')" = "7"
-          if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_8.log; then
+          latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_9.tex
+          test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_9.pdf | awk '/^Pages:/ {print $2}')" = "8"
+          if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_9.log; then
             exit 1
           fi
+          pdffonts Raigorodskii_Exact_Certificate_Draft_v0_9.pdf
 
       - name: Enforce clean public tree
         run: |
-          test "$(git ls-remote --heads origin | wc -l)" -eq 1
           test ! -d publication-assets
-          test ! -e PUBLISHING.md
-          test ! -e RELEASE_NOTES_v0.8.md
-          test ! -e paper/README.md
-          test ! -e paper/CHANGELOG_v0_8.md
-          test ! -e docs/Raigorodskii_Exact_Certificate_Audit_v0_8.md
+          test ! -e paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex
+          test ! -e paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf
+          test ! -e verification/verify_raigorodskii_certificate_v0_8.py
+          test ! -e verification/verify_raigorodskii_certificate_stdlib_v0_8.py
+          test ! -e verification/requirements_raigorodskii_v0_8.txt
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            test "$(git ls-remote --heads origin | wc -l)" -eq 1
+          fi
+
+      - name: Upload verification logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-logs-v0.9
+          path: |
+            axioms.log
+            sympy-normal.log
+            sympy-optimized.log
+            stdlib-normal.log
+            stdlib-optimized.log
+            mutation-tests.log
+          if-no-files-found: error
