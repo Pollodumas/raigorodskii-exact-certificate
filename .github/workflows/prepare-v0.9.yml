@@ -1,0 +1,158 @@
+name: Prepare reviewed v0.9 package
+
+on:
+  push:
+    branches: [review-v0.9]
+    paths:
+      - ".github/workflows/prepare-v0.9.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: review-v0.9
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore reviewed source payload
+        run: |
+          cat .review-payload/part-* > /tmp/raigorodskii-v0.9.b64
+          base64 --decode /tmp/raigorodskii-v0.9.b64 | tar -xz
+          rm -rf .review-payload
+          rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.pdf
+          rm -f paper/Raigorodskii_Exact_Certificate_Draft_v0_8.tex
+          rm -f verification/*v0_8*
+          rm -rf dist
+          rm -f SHA256SUMS
+
+      - name: Install exact-verification dependency
+        run: python -m pip install -r verification/requirements_raigorodskii_v0_9.txt
+
+      - name: Run exact verifiers in normal and optimized modes
+        run: |
+          python verification/verify_raigorodskii_certificate_v0_9.py | tee /tmp/sympy.txt
+          python -O verification/verify_raigorodskii_certificate_v0_9.py > /tmp/sympy-optimized.txt
+          cmp /tmp/sympy.txt /tmp/sympy-optimized.txt
+          python verification/verify_raigorodskii_certificate_stdlib_v0_9.py | tee /tmp/stdlib.txt
+          python -O verification/verify_raigorodskii_certificate_stdlib_v0_9.py > /tmp/stdlib-optimized.txt
+          cmp /tmp/stdlib.txt /tmp/stdlib-optimized.txt
+          python verification/mutation_test_harness_v0_9.py
+
+      - name: Install Lean
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Lean core and print axioms
+        run: |
+          lake update
+          lake exe cache get
+          if grep -RInE '\b(sorry|admit|axiom|opaque|unsafe)\b' --include='*.lean' lean; then
+            echo "Forbidden Lean placeholder or declaration found."
+            exit 1
+          fi
+          lake build
+          lake env lean lean/AxiomsAudit.lean | tee /tmp/lean-axioms.txt
+          if grep -q 'sorryAx' /tmp/lean-axioms.txt; then
+            exit 1
+          fi
+
+      - name: Install TeX and PDF tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-extra texlive-fonts-recommended lmodern poppler-utils
+
+      - name: Compile and inspect manuscript
+        working-directory: paper
+        run: |
+          latexmk -pdf -interaction=nonstopmode -halt-on-error Raigorodskii_Exact_Certificate_Draft_v0_9.tex
+          test "$(pdfinfo Raigorodskii_Exact_Certificate_Draft_v0_9.pdf | awk '/^Pages:/ {print $2}')" = "8"
+          if grep -E 'LaTeX Warning:.*undefined|There were undefined references' Raigorodskii_Exact_Certificate_Draft_v0_9.log; then
+            exit 1
+          fi
+          if pdffonts Raigorodskii_Exact_Certificate_Draft_v0_9.pdf | tail -n +3 | grep -q ' no '; then
+            echo "A PDF font is not embedded or subsetted."
+            exit 1
+          fi
+          latexmk -c Raigorodskii_Exact_Certificate_Draft_v0_9.tex
+
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/prepare-v0.9.yml
+
+      - name: Generate source checksums
+        run: |
+          sha256sum \
+            .github/workflows/verify.yml \
+            .gitignore \
+            README.md \
+            CITATION.cff \
+            paper/Raigorodskii_Exact_Certificate_Draft_v0_9.pdf \
+            paper/Raigorodskii_Exact_Certificate_Draft_v0_9.tex \
+            docs/VERIFICATION_REPORT.md \
+            docs/FORMALIZATION_STATUS.md \
+            docs/FORMALIZATION_ROADMAP.md \
+            docs/PRIORITY_SEARCH.md \
+            lean/RaigorodskiiCertificate.lean \
+            lean/AxiomsAudit.lean \
+            lean-toolchain \
+            lakefile.toml \
+            lake-manifest.json \
+            verification/requirements_raigorodskii_v0_9.txt \
+            verification/verify_raigorodskii_certificate_v0_9.py \
+            verification/verify_raigorodskii_certificate_stdlib_v0_9.py \
+            verification/mutation_test_harness_v0_9.py \
+            > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: Build deterministic reproducibility archive
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED, ZipInfo
+
+          files = [
+              '.github/workflows/verify.yml', '.gitignore', 'README.md', 'CITATION.cff',
+              'SHA256SUMS', 'docs/FORMALIZATION_ROADMAP.md',
+              'docs/FORMALIZATION_STATUS.md', 'docs/PRIORITY_SEARCH.md',
+              'docs/VERIFICATION_REPORT.md', 'lake-manifest.json', 'lakefile.toml',
+              'lean-toolchain', 'lean/AxiomsAudit.lean',
+              'lean/RaigorodskiiCertificate.lean',
+              'paper/Raigorodskii_Exact_Certificate_Draft_v0_9.pdf',
+              'paper/Raigorodskii_Exact_Certificate_Draft_v0_9.tex',
+              'verification/mutation_test_harness_v0_9.py',
+              'verification/requirements_raigorodskii_v0_9.txt',
+              'verification/verify_raigorodskii_certificate_stdlib_v0_9.py',
+              'verification/verify_raigorodskii_certificate_v0_9.py',
+          ]
+          root = 'Raigorodskii_Exact_Certificate_v0_9'
+          out = Path('dist/Raigorodskii_Exact_Certificate_v0_9.zip')
+          with ZipFile(out, 'w', ZIP_DEFLATED, compresslevel=9) as zf:
+              for name in sorted(files):
+                  data = Path(name).read_bytes()
+                  info = ZipInfo(f'{root}/{name}', date_time=(2026, 8, 12, 0, 0, 0))
+                  info.compress_type = ZIP_DEFLATED
+                  info.external_attr = 0o100644 << 16
+                  info.create_system = 3
+                  zf.writestr(info, data, compress_type=ZIP_DEFLATED, compresslevel=9)
+          PY
+          cd dist
+          sha256sum Raigorodskii_Exact_Certificate_v0_9.zip > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: Commit reviewed package
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Prepare reviewed publication package v0.9"
+          git push origin HEAD:review-v0.9
